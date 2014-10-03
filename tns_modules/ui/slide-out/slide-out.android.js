@@ -6,7 +6,7 @@
 };
 var common = require("ui/slide-out/slide-out-common");
 var view = require("ui/core/view");
-var utils = require("utils/utils_android");
+var utils = require("utils/utils");
 var frame = require("ui/frame");
 var geometry = require("utils/geometry");
 
@@ -47,7 +47,7 @@ var SlideOutControl = (function (_super) {
 
         var layoutParams;
         if (child === this.slideContent) {
-            layoutParams = new android.support.v4.widget.DrawerLayout.LayoutParams(utils.layout.getDevicePixels(this.slideContentWidth, this._context), android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.Gravity.START);
+            layoutParams = new android.support.v4.widget.DrawerLayout.LayoutParams(utils.ad.layout.getDevicePixels(this.slideContentWidth, this._context), android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.Gravity.START);
         } else {
             layoutParams = new android.support.v4.widget.DrawerLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT);
         }

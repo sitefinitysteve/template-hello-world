@@ -1,4 +1,4 @@
-﻿var utilsModule = require("utils/utils_ios");
+﻿var utilsModule = require("utils/utils");
 var textModule = require("text");
 
 var FileSystemAccess = (function () {
@@ -157,7 +157,7 @@ var FileSystemAccess = (function () {
     };
 
     FileSystemAccess.prototype.concatPath = function (left, right) {
-        var nsArray = utilsModule.Collections.jsArrayToNSArray([left, right]);
+        var nsArray = utilsModule.ios.collections.jsArrayToNSArray([left, right]);
         var nsString = NSString.pathWithComponents(nsArray);
 
         return nsString.toString();

@@ -1,7 +1,7 @@
 var observable = require("ui/core/observable");
 
 var model = new observable.Observable();
-model.counter = 10;
+model.counter = 42;
 model.setProperty("message", model.counter + " taps left");
 model.tapAction = function(){
 	model.counter --;

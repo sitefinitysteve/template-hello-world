@@ -2,6 +2,7 @@ var helperModule = require("console/console-native");
 
 var Console = (function () {
     function Console() {
+        this.dir = this.dump;
         this._timers = {};
     }
     Console.prototype.sprintf = function (message) {
@@ -89,7 +90,7 @@ var Console = (function () {
                 minWidth = 0;
             } else if (minWidth === '*') {
                 minWidth = +a[i++];
-            } else if (minWidth.charAt(0) == '*') {
+            } else if (minWidth.charAt(0) === '*') {
                 minWidth = +a[minWidth.slice(1, -1)];
             } else {
                 minWidth = +minWidth;
@@ -108,7 +109,7 @@ var Console = (function () {
                 precision = 'fFeE'.indexOf(type) > -1 ? 6 : (type === 'd') ? 0 : undefined;
             } else if (precision === '*') {
                 precision = +a[i++];
-            } else if (precision.charAt(0) == '*') {
+            } else if (precision.charAt(0) === '*') {
                 precision = +a[precision.slice(1, -1)];
             } else {
                 precision = +precision;
@@ -239,7 +240,9 @@ var Console = (function () {
 
     Console.prototype.trace = function () {
         var callstack = [];
+
         var currentFunction = arguments.callee.caller;
+
         while (currentFunction) {
             var fn = currentFunction.toString();
             var fname = fn.substring(fn.indexOf('function') + 8, fn.indexOf('{')).trim() || 'anonymous';
@@ -257,7 +260,7 @@ var Console = (function () {
             this.log("=== dump(): object is 'null' ===");
             return;
         }
-        if ("undefined" == typeof obj) {
+        if ("undefined" === typeof obj) {
             this.log("=== dump(): object is 'undefined' ===");
             return;
         }
@@ -266,7 +269,7 @@ var Console = (function () {
         result.push('=== dump(): dumping function names ===');
         for (var id in obj) {
             try  {
-                if (typeof (obj[id]) == 'function') {
+                if (typeof (obj[id]) === 'function') {
                     result.push(id + '()');
                 }
             } catch (err) {
@@ -279,4 +282,3 @@ var Console = (function () {
     return Console;
 })();
 exports.Console = Console;
-//# sourceMappingURL=console.js.map

@@ -1,9 +1,9 @@
 ﻿var types = require("location/location-types");
-var appModule = require("application/application");
+var appModule = require("application");
 
 var LocationManager = (function () {
     function LocationManager() {
-        this.desiredAccuracy = 3 /* HIGH */;
+        this.desiredAccuracy = 300 /* ANY */;
         this.updateDistance = 0;
         this.minimumUpdateTime = 200;
         this.isStarted = false;
@@ -29,12 +29,15 @@ var LocationManager = (function () {
         var androidLocation = new android.location.Location('custom');
         androidLocation.setLatitude(location.latitude);
         androidLocation.setLongitude(location.longitude);
-        if (location.altitude)
+        if (location.altitude) {
             androidLocation.setAltitude(location.altitude);
-        if (location.speed)
+        }
+        if (location.speed) {
             androidLocation.setSpeed(float(location.speed));
-        if (location.direction)
+        }
+        if (location.direction) {
             androidLocation.setBearing(float(location.direction));
+        }
         if (location.timestamp) {
             try  {
                 androidLocation.setTime(long(location.timestamp.getTime()));
@@ -47,7 +50,7 @@ var LocationManager = (function () {
 
     LocationManager.isEnabled = function () {
         var criteria = new android.location.Criteria();
-        criteria.setAccuracy(1);
+        criteria.setAccuracy(android.location.Criteria.ACCURACY_COARSE);
         var lm = appModule.android.context.getSystemService(android.content.Context.LOCATION_SERVICE);
         return (lm.getBestProvider(criteria, true) != null) ? true : false;
     };
@@ -65,7 +68,7 @@ var LocationManager = (function () {
     LocationManager.prototype.startLocationMonitoring = function (onLocation, onError, options) {
         if (!this.isStarted) {
             var criteria = new android.location.Criteria();
-            criteria.setAccuracy((this.desiredAccuracy === 3 /* HIGH */) ? 1 : 2);
+            criteria.setAccuracy((this.desiredAccuracy === 3 /* HIGH */) ? android.location.Criteria.ACCURACY_FINE : android.location.Criteria.ACCURACY_COARSE);
             this.locationListener = new android.location.LocationListener({
                 onLocationChanged: function (location1) {
                     if (this._onLocation) {
@@ -88,12 +91,15 @@ var LocationManager = (function () {
             });
 
             if (options) {
-                if (options.desiredAccuracy)
+                if (options.desiredAccuracy) {
                     this.desiredAccuracy = options.desiredAccuracy;
-                if (options.updateDistance)
+                }
+                if (options.updateDistance) {
                     this.updateDistance = options.updateDistance;
-                if (options.minimumUpdateTime)
+                }
+                if (options.minimumUpdateTime) {
                     this.minimumUpdateTime = options.minimumUpdateTime;
+                }
             }
 
             this.locationListener._onLocation = onLocation;
@@ -122,7 +128,7 @@ var LocationManager = (function () {
     Object.defineProperty(LocationManager.prototype, "lastKnownLocation", {
         get: function () {
             var criteria = new android.location.Criteria();
-            criteria.setAccuracy((this.desiredAccuracy === 3 /* HIGH */) ? 1 : 2);
+            criteria.setAccuracy((this.desiredAccuracy === 3 /* HIGH */) ? android.location.Criteria.ACCURACY_FINE : android.location.Criteria.ACCURACY_COARSE);
             try  {
                 var providers = this.androidLocationManager.getProviders(criteria, false);
                 var it = providers.iterator();
@@ -146,4 +152,3 @@ var LocationManager = (function () {
     return LocationManager;
 })();
 exports.LocationManager = LocationManager;
-//# sourceMappingURL=location-manager.android.js.map

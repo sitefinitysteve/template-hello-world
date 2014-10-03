@@ -1,4 +1,4 @@
-﻿var appModule = require("application/application");
+﻿var appModule = require("application");
 var Common = require("local-settings/local-settings-common");
 
 var sharedPreferences = appModule.android.context.getSharedPreferences("prefs.db", 0);
@@ -62,4 +62,3 @@ exports.remove = function (key) {
     editor.remove(key);
     editor.commit();
 };
-//# sourceMappingURL=local-settings.android.js.map

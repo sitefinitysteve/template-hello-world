@@ -1,4 +1,4 @@
-﻿var appModule = require("application/application");
+﻿var appModule = require("application");
 
 exports.fromResource = function (name) {
     var androidApp = appModule.android;
@@ -40,4 +40,3 @@ exports.saveToFile = function (instance, path, format, quality) {
     outputStream.close();
     return res;
 };
-//# sourceMappingURL=image-source-native.android.js.map

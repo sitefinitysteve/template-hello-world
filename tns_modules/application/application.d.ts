@@ -2,6 +2,8 @@ declare module "application" {
 
     export var mainModule: string;
 
+    export function start();
+
    /**
     * The main entry point event. This method is expected to use the root frame to navigate to the main application page.
     */

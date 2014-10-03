@@ -133,3 +133,7 @@ var iOSApplication = (function () {
 var app = new iOSApplication();
 exports.ios = app;
 app.init();
+
+exports.start = function () {
+    UIApplicationMain(0, null, null, "TNSAppDelegate");
+};

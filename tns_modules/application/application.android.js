@@ -140,3 +140,6 @@ var AndroidApplication = (function () {
     };
     return AndroidApplication;
 })();
+
+exports.start = function () {
+};

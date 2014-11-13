@@ -1,4 +1,4 @@
-var pages = require("ui/pages");
+var pages = require("ui/page");
 var stackPanel = require("ui/panels/stack-panel");
 var button = require("ui/button");
 var label = require("ui/label");

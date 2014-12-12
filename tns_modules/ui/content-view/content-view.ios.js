@@ -29,7 +29,7 @@ var ContentView = (function (_super) {
     ContentView.prototype._addViewToNativeVisualTree = function (child) {
         _super.prototype._addViewToNativeVisualTree.call(this, child);
         if (child._nativeView) {
-            this._view.addSubview(child._nativeView);
+            this._nativeView.addSubview(child._nativeView);
             return true;
         }
         return false;

@@ -45,9 +45,6 @@ var TextView = (function (_super) {
         enumerable: true,
         configurable: true
     });
-    TextView.prototype._onTextPropertyChanged = function (data) {
-        this.ios.text = data.newValue;
-    };
     return TextView;
 })(common.TextView);
 exports.TextView = TextView;

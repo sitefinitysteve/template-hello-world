@@ -11,8 +11,8 @@ exports.editableProperty = new dependencyObservable.Property("editable", "TextVi
 require("utils/module-merge").merge(textBase, exports);
 var TextView = (function (_super) {
     __extends(TextView, _super);
-    function TextView() {
-        _super.apply(this, arguments);
+    function TextView(options) {
+        _super.call(this, options);
     }
     Object.defineProperty(TextView.prototype, "editable", {
         get: function () {

@@ -74,12 +74,6 @@ var Page = (function (_super) {
     Page.prototype.onNavigatedFrom = function () {
         this._navigationContext = undefined;
     };
-    Page.prototype._descendantLoaded = function (descendant) {
-        if (!this.isLoaded) {
-            return;
-        }
-        this._styleScope.applySelectors(descendant);
-    };
     Page.prototype._getStyleScope = function () {
         return this._styleScope;
     };

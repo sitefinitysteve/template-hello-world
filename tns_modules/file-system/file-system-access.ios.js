@@ -171,9 +171,6 @@ var FileSystemAccess = (function () {
     FileSystemAccess.prototype.getTempFolderPath = function () {
         return this.getKnownPath(this.cachesDir);
     };
-    FileSystemAccess.prototype.getCurrentAppFolderPath = function () {
-        return NSBundle.mainBundle().resourcePath;
-    };
     FileSystemAccess.prototype.readText = function (path, onSuccess, onError, encoding) {
         var actualEncoding = encoding;
         if (!actualEncoding) {

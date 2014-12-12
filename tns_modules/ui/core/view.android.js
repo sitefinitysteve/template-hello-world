@@ -7,20 +7,17 @@ var __extends = this.__extends || function (d, b) {
 var viewCommon = require("ui/core/view-common");
 var geometry = require("utils/geometry");
 var trace = require("trace");
-var types = require("utils/types");
 var utils = require("utils/utils");
+var enums = require("ui/enums");
 require("utils/module-merge").merge(viewCommon, exports);
 var ANDROID = "_android";
 var NATIVE_VIEW = "_nativeView";
 var VIEW_GROUP = "_viewGroup";
-function onIsVisiblePropertyChanged(data) {
+function onIsEnabledPropertyChanged(data) {
     var view = data.object;
-    if (!view[NATIVE_VIEW]) {
-        return;
-    }
-    view[NATIVE_VIEW].setVisibility(data.newValue ? android.view.View.VISIBLE : android.view.View.GONE);
+    view._nativeView.setEnabled(data.newValue);
 }
-viewCommon.isVisibleProperty.metadata.onSetNativeValue = onIsVisiblePropertyChanged;
+viewCommon.isEnabledProperty.metadata.onSetNativeValue = onIsEnabledPropertyChanged;
 var View = (function (_super) {
     __extends(View, _super);
     function View() {
@@ -134,14 +131,44 @@ var View = (function (_super) {
             view.layout(rect.x * density, rect.y * density, (rect.x + rect.width) * density, (rect.y + rect.height) * density);
         }
     };
-    View.prototype._getMeasureSpec = function (length, spec) {
-        if (types.isDefined(spec)) {
-            return utils.ad.layout.makeMeasureSpec(length, spec);
+    View.prototype._getParentMeasureSpecMode = function (horizontal) {
+        if (this.parent) {
+            var parent = this.parent;
+            return horizontal ? parent.widthSpecMode : parent.heightSpecMode;
         }
-        if (isFinite(length)) {
-            return utils.ad.layout.makeMeasureSpec(length, utils.ad.layout.AT_MOST);
+        return utils.ad.layout.EXACTLY;
+    };
+    View.prototype._getMeasureSpec = function (measureLength, horizontal) {
+        var parentSpecMode = this._getParentMeasureSpecMode(horizontal);
+        var resultSize = 0;
+        var resultMode = 0;
+        var length = horizontal ? this.width : this.height;
+        if (!isNaN(length)) {
+            resultSize = measureLength;
+            resultMode = utils.ad.layout.EXACTLY;
         }
-        return utils.ad.layout.makeMeasureSpec(0, utils.ad.layout.UNSPECIFIED);
+        else {
+            if (!isFinite(measureLength)) {
+                parentSpecMode = utils.ad.layout.UNSPECIFIED;
+            }
+            switch (parentSpecMode) {
+                case utils.ad.layout.EXACTLY:
+                    resultSize = measureLength;
+                    var stretched = horizontal ? this.horizontalAlignment === enums.HorizontalAlignment.stretch : this.verticalAlignment === enums.VerticalAlignment.stretch;
+                    resultMode = stretched ? utils.ad.layout.EXACTLY : utils.ad.layout.AT_MOST;
+                    break;
+                case utils.ad.layout.AT_MOST:
+                    resultSize = measureLength;
+                    resultMode = utils.ad.layout.AT_MOST;
+                    break;
+                case utils.ad.layout.UNSPECIFIED:
+                    resultSize = 0;
+                    resultMode = utils.ad.layout.UNSPECIFIED;
+                    break;
+            }
+        }
+        trace.write(this + ", measureSpec " + (horizontal ? "Width" : "Height") + " = " + resultSize + ", resultMode = " + (resultMode === utils.ad.layout.EXACTLY ? "EXACTLY" : (resultMode === utils.ad.layout.AT_MOST ? "AT_MOST" : "UNSPECIFIED")), trace.categories.Layout);
+        return utils.ad.layout.makeMeasureSpec(resultSize, resultMode);
     };
     View.prototype._measureNativeView = function (availableSize, options) {
         var nativeView = this._nativeView;
@@ -149,15 +176,15 @@ var View = (function (_super) {
             var density = utils.ad.layout.getDisplayDensity();
             var measureWidth = availableSize.width * density;
             var measureHeight = availableSize.height * density;
-            var widthSpec = this._getMeasureSpec(measureWidth, options);
-            var heightSpec = this._getMeasureSpec(measureHeight, options);
+            var widthSpec = this._getMeasureSpec(measureWidth, true);
+            var heightSpec = this._getMeasureSpec(measureHeight, false);
             nativeView.measure(widthSpec, heightSpec);
             var desiredWidth = Math.round(nativeView.getMeasuredWidth() / density);
             var desiredHeight = Math.round(nativeView.getMeasuredHeight() / density);
             return new geometry.Size(desiredWidth, desiredHeight);
         }
         else {
-            return this._measureOverride(availableSize, options);
+            throw new Error("_measureNativeView called but there is no nativeView for view: " + this);
         }
     };
     Object.defineProperty(View.prototype, "_nativeView", {

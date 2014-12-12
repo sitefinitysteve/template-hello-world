@@ -42,9 +42,12 @@ var ListView = (function (_super) {
                 if (!owner) {
                     return null;
                 }
-                var view = owner._getRealizedView(convertView);
+                var view = owner._getRealizedView(convertView, index);
                 var args = { eventName: ITEMLOADING, object: owner, index: index, view: view };
                 owner.notify(args);
+                if (!args.view) {
+                    args.view = this._getDefaultItemContent(index);
+                }
                 if (args.view) {
                     if (!args.view.parent) {
                         owner._addView(args.view);
@@ -52,6 +55,7 @@ var ListView = (function (_super) {
                     convertView = args.view.android;
                     owner._realizedItems[convertView.hashCode()] = args.view;
                     args.view[REALIZED_INDEX] = index;
+                    owner._prepareItem(args.view, index);
                 }
                 return convertView;
             },
@@ -91,7 +95,7 @@ var ListView = (function (_super) {
             onItemClick: function (parent, convertView, index, id) {
                 var owner = that.get();
                 if (owner) {
-                    owner.notify({ eventName: ITEMTAP, object: owner, index: index, view: owner._getRealizedView(convertView) });
+                    owner.notify({ eventName: ITEMTAP, object: owner, index: index, view: owner._getRealizedView(convertView, index) });
                 }
             }
         }));
@@ -123,9 +127,9 @@ var ListView = (function (_super) {
             delete this._realizedItems[key];
         }
     };
-    ListView.prototype._getRealizedView = function (convertView) {
+    ListView.prototype._getRealizedView = function (convertView, index) {
         if (!convertView) {
-            return undefined;
+            return this._getItemTemplateContent(index);
         }
         return this._realizedItems[convertView.hashCode()];
     };

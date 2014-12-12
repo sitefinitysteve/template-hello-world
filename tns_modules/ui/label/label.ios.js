@@ -5,11 +5,6 @@ var __extends = this.__extends || function (d, b) {
     d.prototype = new __();
 };
 var common = require("ui/label/label-common");
-function onTextPropertyChanged(data) {
-    var label = data.object;
-    label.ios.text = data.newValue;
-}
-common.textProperty.metadata.onSetNativeValue = onTextPropertyChanged;
 function onTextWrapPropertyChanged(data) {
     var label = data.object;
     if (data.newValue) {
@@ -36,6 +31,13 @@ var Label = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    Label.prototype._measureOverride = function (availableSize) {
+        var desiredSize = _super.prototype._measureOverride.call(this, availableSize);
+        if (!this.textWrap) {
+            desiredSize.width = Math.min(desiredSize.width, availableSize.width);
+        }
+        return desiredSize;
+    };
     return Label;
 })(common.Label);
 exports.Label = Label;

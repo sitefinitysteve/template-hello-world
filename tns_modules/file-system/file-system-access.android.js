@@ -180,9 +180,6 @@ var FileSystemAccess = (function () {
         var dir = context.getCacheDir();
         return dir.getAbsolutePath();
     };
-    FileSystemAccess.prototype.getCurrentAppFolderPath = function () {
-        return this.getDocumentsFolderPath();
-    };
     FileSystemAccess.prototype.readText = function (path, onSuccess, onError, encoding) {
         try {
             var javaFile = new java.io.File(path);
@@ -205,6 +202,9 @@ var FileSystemAccess = (function () {
                 }
                 result += line;
             }
+            if (actualEncoding === textModule.encoding.UTF_8) {
+                result = FileSystemAccess._removeUtf8Bom(result);
+            }
             bufferedReader.close();
             if (onSuccess) {
                 onSuccess(result);
@@ -215,6 +215,12 @@ var FileSystemAccess = (function () {
                 onError(exception);
             }
         }
+    };
+    FileSystemAccess._removeUtf8Bom = function (s) {
+        if (s.charCodeAt(0) === 0xFEFF) {
+            s = s.slice(1);
+        }
+        return s;
     };
     FileSystemAccess.prototype.writeText = function (path, content, onSuccess, onError, encoding) {
         try {

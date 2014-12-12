@@ -93,6 +93,14 @@ var TabView = (function (_super) {
         configurable: true
     });
     TabView.prototype._onSelectedIndexPropertyChangedSetNativeValue = function (data) {
+        var index = this.selectedIndex;
+        if (types.isUndefined(index)) {
+            return;
+        }
+        if (index < 0 || index >= this.items.length) {
+            this.selectedIndex = undefined;
+            throw new Error("SelectedIndex should be between [0, items.length)");
+        }
     };
     Object.defineProperty(TabView.prototype, "_selectedView", {
         get: function () {

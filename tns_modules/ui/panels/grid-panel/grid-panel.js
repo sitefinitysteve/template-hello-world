@@ -13,6 +13,7 @@ var bm = require("ui/core/bindable");
 var observable = require("ui/core/dependency-observable");
 var utils = require("utils/utils");
 var types = require("utils/types");
+var numberUtils = require("utils/number-utils");
 var ComparerHelper = (function () {
     function ComparerHelper(x, y) {
         this.x = x;
@@ -37,22 +38,6 @@ function CompareNullRefs(helper) {
     }
     return (helper.result !== 2);
 }
-var NumberUtils = (function () {
-    function NumberUtils() {
-    }
-    NumberUtils.areClose = function (value1, value2) {
-        if (value1 === value2) {
-            return true;
-        }
-        var delta = value1 - value2;
-        return (delta < NumberUtils.Epsilon) && (delta > -NumberUtils.Epsilon);
-    };
-    NumberUtils.greaterThanOrClose = function (value1, value2) {
-        return (value1 > value2) || NumberUtils.areClose(value1, value2);
-    };
-    NumberUtils.Epsilon = 0.00000153;
-    return NumberUtils;
-})();
 function compareNumbers(x, y) {
     return x - y;
 }
@@ -647,18 +632,6 @@ var GridPanel = (function (_super) {
             }
         }
     };
-    GridPanel.areClose = function (d1, d2) {
-        return (Math.abs(d1 - d2) < GridPanel.c_epsilon);
-    };
-    GridPanel.isZero = function (d) {
-        return (Math.abs(d) < GridPanel.c_epsilon);
-    };
-    GridPanel.isValueGreaterThanZero = function (value) {
-        return value > 0;
-    };
-    GridPanel.isValueNotNegative = function (value) {
-        return value >= 0;
-    };
     GridPanel.registerSpan = function (store, start, count, u, value) {
         var key = new SpanKey(start, count, u);
         var currentValue = store.get(key);
@@ -884,7 +857,7 @@ var GridPanel = (function (_super) {
     };
     GridPanel.prototype.applyCachedMinSizes = function (minSizes, isRows) {
         for (var i = 0; i < minSizes.length; i++) {
-            if (NumberUtils.greaterThanOrClose(minSizes[i], 0)) {
+            if (numberUtils.greaterThanOrClose(minSizes[i], 0)) {
                 if (isRows) {
                     this.definitionsV[i].minSize = minSizes[i];
                 }
@@ -905,7 +878,7 @@ var GridPanel = (function (_super) {
         return ((this._flags & flags) === flags);
     };
     GridPanel.prototype.ensureMinSizeInDefinitionRange = function (definitions, start, count, requestedSize, percentReferenceSize) {
-        if (!GridPanel.isZero(requestedSize)) {
+        if (!numberUtils.isZero(requestedSize)) {
             var tempDefinitions = this.tempDefinitions;
             var end = start + count;
             var autoDefinitionsCount = 0;
@@ -968,7 +941,7 @@ var GridPanel = (function (_super) {
                 }
                 else {
                     var equalSize = requestedSize / count;
-                    if (equalSize < maxMaxSize && !GridPanel.areClose(equalSize, maxMaxSize)) {
+                    if (equalSize < maxMaxSize && !numberUtils.areClose(equalSize, maxMaxSize)) {
                         var totalRemainingSize = (maxMaxSize * count) - rangeMaxSize;
                         sizeToDistribute = requestedSize - rangeMaxSize;
                         for (i = 0; i < count; ++i) {
@@ -1047,7 +1020,7 @@ var GridPanel = (function (_super) {
         do {
             var oldWidth = children[i]._layoutInfo.desiredSize.width;
             var desiredSize = this.measureCell(i, forceInfinityV);
-            hasDesiredSizeUChanged = hasDesiredSizeUChanged || !NumberUtils.areClose(oldWidth, desiredSize.width);
+            hasDesiredSizeUChanged = hasDesiredSizeUChanged || !numberUtils.areClose(oldWidth, desiredSize.width);
             if (!ignoreDesiredSizeU) {
                 if (this.privateCells[i].columnSpan === 1) {
                     this.definitionsU[this.privateCells[i].columnIndex].updateMinSize(Math.min(desiredSize.width, this.definitionsU[this.privateCells[i].columnIndex].userMaxSize));
@@ -1096,7 +1069,7 @@ var GridPanel = (function (_super) {
                     {
                         tempDefinitions[starDefinitionsCount++] = definitions[i];
                         starValue = definitions[i].userSize.value;
-                        if (GridPanel.isZero(starValue)) {
+                        if (numberUtils.isZero(starValue)) {
                             definitions[i].measureSize = 0;
                             definitions[i].sizeCache = 0;
                         }
@@ -1123,7 +1096,7 @@ var GridPanel = (function (_super) {
             do {
                 var resolvedSize;
                 starValue = tempDefinitions[index].measureSize;
-                if (GridPanel.isZero(starValue)) {
+                if (numberUtils.isZero(starValue)) {
                     resolvedSize = tempDefinitions[index].minSize;
                 }
                 else {
@@ -1146,7 +1119,7 @@ var GridPanel = (function (_super) {
         for (var i = 0; i < definitions.length; i++) {
             if (definitions[i].userSize.isStar) {
                 starValue = definitions[i].userSize.value;
-                if (GridPanel.isZero(starValue)) {
+                if (numberUtils.isZero(starValue)) {
                     definitions[i].measureSize = 0.0;
                     definitions[i].sizeCache = 0.0;
                 }
@@ -1185,7 +1158,7 @@ var GridPanel = (function (_super) {
             do {
                 var resolvedSize;
                 starValue = definitions[definitionIndices[index]].measureSize;
-                if (GridPanel.isZero(starValue)) {
+                if (numberUtils.isZero(starValue)) {
                     resolvedSize = definitions[definitionIndices[index]].minSize;
                 }
                 else {
@@ -1197,7 +1170,7 @@ var GridPanel = (function (_super) {
                 allPreferredArrangeSize += definitions[definitionIndices[index]].sizeCache;
             } while (++index < starDefinitionsCount);
         }
-        if (allPreferredArrangeSize > finalSize && !GridPanel.areClose(allPreferredArrangeSize, finalSize)) {
+        if (allPreferredArrangeSize > finalSize && !numberUtils.areClose(allPreferredArrangeSize, finalSize)) {
             containers.ArraySortHelper.sort(definitionIndices, 0, definitions.length, getDistributionOrderIndexCompareFn(definitions));
             var sizeToDistribute = finalSize - allPreferredArrangeSize;
             for (var k = 0; k < definitions.length; k++) {
@@ -1585,13 +1558,12 @@ var GridPanel = (function (_super) {
         enumerable: true,
         configurable: true
     });
-    GridPanel.c_epsilon = 1E-05;
     GridPanel.c_starClip = 1E+298;
     GridPanel.c_layoutLoopMaxCount = 5;
-    GridPanel.ColumnProperty = new observable.Property("Column", "GridPanel", new observable.PropertyMetadata(0, observable.PropertyMetadataOptions.None, GridPanel.onCellAttachedPropertyChanged, GridPanel.isValueNotNegative));
-    GridPanel.ColumnSpanProperty = new observable.Property("ColumnSpan", "GridPanel", new observable.PropertyMetadata(1, observable.PropertyMetadataOptions.None, GridPanel.onCellAttachedPropertyChanged, GridPanel.isValueGreaterThanZero));
-    GridPanel.RowProperty = new observable.Property("Row", "GridPanel", new observable.PropertyMetadata(0, observable.PropertyMetadataOptions.None, GridPanel.onCellAttachedPropertyChanged, GridPanel.isValueNotNegative));
-    GridPanel.RowSpanProperty = new observable.Property("RowSpan", "GridPanel", new observable.PropertyMetadata(1, observable.PropertyMetadataOptions.None, GridPanel.onCellAttachedPropertyChanged, GridPanel.isValueGreaterThanZero));
+    GridPanel.ColumnProperty = new observable.Property("Column", "GridPanel", new observable.PropertyMetadata(0, observable.PropertyMetadataOptions.None, GridPanel.onCellAttachedPropertyChanged, numberUtils.notNegative));
+    GridPanel.ColumnSpanProperty = new observable.Property("ColumnSpan", "GridPanel", new observable.PropertyMetadata(1, observable.PropertyMetadataOptions.None, GridPanel.onCellAttachedPropertyChanged, numberUtils.greaterThanZero));
+    GridPanel.RowProperty = new observable.Property("Row", "GridPanel", new observable.PropertyMetadata(0, observable.PropertyMetadataOptions.None, GridPanel.onCellAttachedPropertyChanged, numberUtils.notNegative));
+    GridPanel.RowSpanProperty = new observable.Property("RowSpan", "GridPanel", new observable.PropertyMetadata(1, observable.PropertyMetadataOptions.None, GridPanel.onCellAttachedPropertyChanged, numberUtils.greaterThanZero));
     return GridPanel;
 })(panel.Panel);
 exports.GridPanel = GridPanel;

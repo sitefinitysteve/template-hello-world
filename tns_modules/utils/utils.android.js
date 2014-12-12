@@ -1,5 +1,6 @@
 var application = require("application");
 var common = require("utils/utils-common");
+var geometry = require("utils/geometry");
 require("utils/module-merge").merge(common, exports);
 var ad;
 (function (ad) {
@@ -80,6 +81,51 @@ var ad;
             return devicePixels / getDevicePixels(1, context);
         }
         layout.getDeviceIndependentPixels = getDeviceIndependentPixels;
+        function getLength(measureLength, desiredLength, measureSpecMode) {
+            switch (measureSpecMode) {
+                case layout.EXACTLY:
+                    return measureLength;
+                case layout.AT_MOST:
+                    return Math.min(measureLength, desiredLength);
+                case layout.UNSPECIFIED:
+                default:
+                    return desiredLength;
+            }
+        }
+        function onMeasureNative(widthMeasureSpec, heightMeasureSpec) {
+            if (!this.owner) {
+                return;
+            }
+            var widthSpecMode = getMeasureSpecMode(widthMeasureSpec);
+            var widthSpecSize = getMeasureSpecSize(widthMeasureSpec);
+            var heightSpecMode = getMeasureSpecMode(heightMeasureSpec);
+            var heightSpecSize = getMeasureSpecSize(heightMeasureSpec);
+            if (widthSpecSize === 0 && widthSpecMode === layout.UNSPECIFIED) {
+                widthSpecSize = Number.POSITIVE_INFINITY;
+            }
+            if (heightSpecSize === 0 && heightSpecMode === layout.UNSPECIFIED) {
+                heightSpecSize = Number.POSITIVE_INFINITY;
+            }
+            var density = getDisplayDensity();
+            var measureWidth = widthSpecSize / density;
+            var measureHeight = heightSpecSize / density;
+            this.owner.widthSpecMode = widthSpecMode;
+            this.owner.heightSpecMode = heightSpecMode;
+            var desiredSize = this.owner.measure(new geometry.Size(measureWidth, measureHeight), true);
+            var desiredWidth = getLength(widthSpecSize, Math.round(desiredSize.width * density), widthSpecMode);
+            var desiredHeight = getLength(heightSpecSize, Math.round(desiredSize.height * density), heightSpecMode);
+            this.setMeasuredDimension(desiredWidth, desiredHeight);
+        }
+        layout.onMeasureNative = onMeasureNative;
+        function onLayoutNative(changed, left, top, right, bottom) {
+            if (!this.owner) {
+                return;
+            }
+            var density = getDisplayDensity();
+            var arrangeRect = new geometry.Rect(left / density, top / density, (right - left) / density, (bottom - top) / density);
+            this.owner.arrange(arrangeRect, true);
+        }
+        layout.onLayoutNative = onLayoutNative;
     })(layout = ad.layout || (ad.layout = {}));
     var id;
     (function (id) {

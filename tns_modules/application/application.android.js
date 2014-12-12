@@ -1,5 +1,6 @@
 var appModule = require("application/application-common");
 var frame = require("ui/frame");
+var types = require("utils/types");
 require("utils/module-merge").merge(appModule, exports);
 var callbacks = android.app.Application.ActivityLifecycleCallbacks;
 exports.mainModule;
@@ -112,5 +113,16 @@ var AndroidApplication = (function () {
     };
     return AndroidApplication;
 })();
+global.__onUncaughtError = function (error) {
+    if (!types.isFunction(exports.onUncaughtError)) {
+        return;
+    }
+    var nsError = {
+        message: error.message,
+        name: error.name,
+        nativeError: error.nativeException
+    };
+    exports.onUncaughtError(nsError);
+};
 exports.start = function () {
 };

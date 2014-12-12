@@ -34,6 +34,7 @@ var PropertyMetadataOptions;
     PropertyMetadataOptions.AffectsParentMeasure = 1 << 2;
     PropertyMetadataOptions.AffectsParentArrange = 1 << 3;
     PropertyMetadataOptions.Inheritable = 1 << 4;
+    PropertyMetadataOptions.AffectsStyle = 1 << 5;
 })(PropertyMetadataOptions = exports.PropertyMetadataOptions || (exports.PropertyMetadataOptions = {}));
 var ValueSource;
 (function (ValueSource) {
@@ -44,7 +45,7 @@ var ValueSource;
     ValueSource.VisualState = 4;
 })(ValueSource = exports.ValueSource || (exports.ValueSource = {}));
 var PropertyMetadata = (function () {
-    function PropertyMetadata(defaultValue, options, onChanged, onValidateValue) {
+    function PropertyMetadata(defaultValue, options, onChanged, onValidateValue, equalityComparer) {
         this._defaultValue = defaultValue;
         this._options = options;
         if (types.isUndefined(this._options)) {
@@ -52,6 +53,7 @@ var PropertyMetadata = (function () {
         }
         this._onChanged = onChanged;
         this._onValidateValue = onValidateValue;
+        this._equalityComparer = equalityComparer;
     }
     Object.defineProperty(PropertyMetadata.prototype, "defaultValue", {
         get: function () {
@@ -81,8 +83,12 @@ var PropertyMetadata = (function () {
         get: function () {
             return this._onValidateValue;
         },
-        set: function (value) {
-            this._onValidateValue = value;
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PropertyMetadata.prototype, "equalityComparer", {
+        get: function () {
+            return this._equalityComparer;
         },
         enumerable: true,
         configurable: true
@@ -118,6 +124,13 @@ var PropertyMetadata = (function () {
     Object.defineProperty(PropertyMetadata.prototype, "inheritable", {
         get: function () {
             return (this._options & PropertyMetadataOptions.Inheritable) === PropertyMetadataOptions.Inheritable;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PropertyMetadata.prototype, "affectsStyle", {
+        get: function () {
+            return (this._options & PropertyMetadataOptions.AffectsStyle) === PropertyMetadataOptions.AffectsStyle;
         },
         enumerable: true,
         configurable: true
@@ -302,29 +315,7 @@ var DependencyObservable = (function (_super) {
         if (types.isUndefined(source)) {
             source = ValueSource.Local;
         }
-        var entry = this._propertyEntries[property.id];
-        if (!entry) {
-            entry = new PropertyEntry(property);
-            this._propertyEntries[property.id] = entry;
-        }
-        var currentValue = entry.effectiveValue;
-        switch (source) {
-            case ValueSource.Css:
-                entry.cssValue = value;
-                break;
-            case ValueSource.Inherited:
-                entry.inheritedValue = value;
-                break;
-            case ValueSource.Local:
-                entry.localValue = value;
-                break;
-            case ValueSource.VisualState:
-                entry.visualStateValue = value;
-                break;
-        }
-        if (currentValue !== entry.effectiveValue) {
-            this._onPropertyChanged(property, currentValue, entry.effectiveValue);
-        }
+        this._setValueInternal(property, value, source);
     };
     DependencyObservable.prototype._getValueSource = function (property) {
         var entry = this._propertyEntries[property.id];
@@ -345,13 +336,14 @@ var DependencyObservable = (function (_super) {
             return;
         }
         if (types.isDefined(source)) {
-            this._setValue(property, undefined, source);
+            this._setValueInternal(property, undefined, source);
         }
         else {
             var currentValue = this._getValue(property);
             delete this._propertyEntries[property.id];
             var newValue = this._getValue(property);
-            if (currentValue !== newValue) {
+            var comparer = property.metadata.equalityComparer || this._defaultComparer;
+            if (!comparer(currentValue, newValue)) {
                 this._onPropertyChanged(property, currentValue, newValue);
             }
         }
@@ -385,6 +377,38 @@ var DependencyObservable = (function (_super) {
                 break;
             }
         }
+    };
+    DependencyObservable.prototype.toString = function () {
+        return this.typeName;
+    };
+    DependencyObservable.prototype._setValueInternal = function (property, value, source) {
+        var entry = this._propertyEntries[property.id];
+        if (!entry) {
+            entry = new PropertyEntry(property);
+            this._propertyEntries[property.id] = entry;
+        }
+        var currentValue = entry.effectiveValue;
+        switch (source) {
+            case ValueSource.Css:
+                entry.cssValue = value;
+                break;
+            case ValueSource.Inherited:
+                entry.inheritedValue = value;
+                break;
+            case ValueSource.Local:
+                entry.localValue = value;
+                break;
+            case ValueSource.VisualState:
+                entry.visualStateValue = value;
+                break;
+        }
+        var comparer = property.metadata.equalityComparer || this._defaultComparer;
+        if (!comparer(currentValue, entry.effectiveValue)) {
+            this._onPropertyChanged(property, currentValue, entry.effectiveValue);
+        }
+    };
+    DependencyObservable.prototype._defaultComparer = function (x, y) {
+        return x === y;
     };
     return DependencyObservable;
 })(observable.Observable);

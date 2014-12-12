@@ -5,20 +5,21 @@ var __extends = this.__extends || function (d, b) {
     d.prototype = new __();
 };
 var imageCommon = require("ui/image/image-common");
+var enums = require("ui/enums");
 require("utils/module-merge").merge(imageCommon, exports);
 function onStretchPropertyChanged(data) {
     var image = data.object;
     switch (data.newValue) {
-        case imageCommon.stretch.aspectFit:
+        case enums.Stretch.aspectFit:
             image.ios.contentMode = UIViewContentMode.UIViewContentModeScaleAspectFit;
             break;
-        case imageCommon.stretch.aspectFill:
+        case enums.Stretch.aspectFill:
             image.ios.contentMode = UIViewContentMode.UIViewContentModeScaleAspectFill;
             break;
-        case imageCommon.stretch.fill:
+        case enums.Stretch.fill:
             image.ios.contentMode = UIViewContentMode.UIViewContentModeScaleToFill;
             break;
-        case imageCommon.stretch.none:
+        case enums.Stretch.none:
         default:
             image.ios.contentMode = UIViewContentMode.UIViewContentModeTopLeft;
             break;
@@ -27,6 +28,9 @@ function onStretchPropertyChanged(data) {
 function onSourcePropertyChanged(data) {
     var image = data.object;
     image.ios.image = data.newValue ? data.newValue.ios : null;
+    if (isNaN(image.width) || isNaN(image.height)) {
+        image._invalidateMeasure();
+    }
 }
 imageCommon.stretchProperty.metadata.onSetNativeValue = onStretchPropertyChanged;
 imageCommon.sourceProperty.metadata.onSetNativeValue = onSourcePropertyChanged;

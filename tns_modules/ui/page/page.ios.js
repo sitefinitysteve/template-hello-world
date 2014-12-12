@@ -29,6 +29,7 @@ var body = {
     },
     viewDidLoad: function () {
         this.view.autoresizesSubviews = false;
+        this.view.autoresizingMask = UIViewAutoresizing.UIViewAutoresizingNone;
     },
     viewDidLayoutSubviews: function () {
         trace.write(this.owner + " viewDidLayoutSubviews, isLoaded = " + this.owner.isLoaded, trace.categories.ViewHierarchy);
@@ -41,6 +42,7 @@ var Page = (function (_super) {
     function Page(options) {
         _super.call(this, options);
         this._ios = viewControllerExtended.new();
+        this._ios.automaticallyAdjustsScrollViewInsets = false;
         this._ios["_owner"] = this;
         (this._layoutInfo).isLayoutSuspended = false;
     }

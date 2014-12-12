@@ -5,12 +5,15 @@ var __extends = this.__extends || function (d, b) {
     d.prototype = new __();
 };
 var aiCommon = require("ui/activity-indicator/activity-indicator-common");
+var enums = require("ui/enums");
 function onBusyPropertyChanged(data) {
     var indicator = data.object;
     if (!indicator.android) {
         return;
     }
-    indicator.android.setVisibility(data.newValue ? android.view.View.VISIBLE : android.view.View.INVISIBLE);
+    if (indicator.visibility === enums.Visibility.visible) {
+        indicator.android.setVisibility(data.newValue ? android.view.View.VISIBLE : android.view.View.INVISIBLE);
+    }
 }
 aiCommon.busyProperty.metadata.onSetNativeValue = onBusyPropertyChanged;
 require("utils/module-merge").merge(aiCommon, exports);

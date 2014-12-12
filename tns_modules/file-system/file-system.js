@@ -342,7 +342,8 @@ var knownFolders;
     };
     knownFolders.currentApp = function () {
         if (!_app) {
-            var path = getFileAccess().getCurrentAppFolderPath();
+            var currentDir = __dirname;
+            var path = currentDir.substring(0, currentDir.indexOf("/tns_modules"));
             _app = new Folder();
             _app[pathProperty] = path;
             _app[isKnownProperty] = true;

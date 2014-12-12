@@ -1,6 +1,8 @@
 var appModule = require("application/application-common");
 var frame = require("ui/frame");
 var geometry = require("utils/geometry");
+var utils = require("utils/utils");
+var types = require("utils/types");
 require("utils/module-merge").merge(appModule, exports);
 exports.mainModule;
 var RootWindow = (function () {
@@ -26,7 +28,6 @@ var RootWindow = (function () {
         if (!this._frame) {
             return;
         }
-        var window = this._uiWindow;
         var statusFrame = UIApplication.sharedApplication().statusBarFrame;
         var statusBarHeight = 0;
         try {
@@ -35,18 +36,24 @@ var RootWindow = (function () {
         catch (ex) {
             console.log("exception: " + ex);
         }
-        var windowFrame = window.frame;
-        var transformedBounds = windowFrame;
-        var bounds;
-        var device = UIDevice.currentDevice();
-        if (device.orientation === UIDeviceOrientation.UIDeviceOrientationLandscapeLeft || device.orientation === UIDeviceOrientation.UIDeviceOrientationLandscapeRight) {
-            bounds = new geometry.Rect(transformedBounds.origin.x + statusBarHeight, transformedBounds.origin.y, transformedBounds.size.height - statusBarHeight, transformedBounds.size.width);
+        var isLandscape = utils.ios.isLandscape();
+        var iOSMajorVersion = utils.ios.MajorVersion;
+        if (isLandscape && iOSMajorVersion > 7) {
+            statusBarHeight = 0;
         }
-        else {
-            bounds = new geometry.Rect(transformedBounds.origin.x, transformedBounds.origin.y + statusBarHeight, transformedBounds.size.width, transformedBounds.size.height - statusBarHeight);
+        var deviceFrame = UIScreen.mainScreen().bounds;
+        var size = deviceFrame.size;
+        var width = size.width;
+        var height = size.height;
+        if (iOSMajorVersion < 8 && isLandscape) {
+            width = size.height;
+            height = size.width;
         }
+        var origin = deviceFrame.origin;
+        var bounds = new geometry.Rect(origin.x, origin.y + statusBarHeight, width, height - statusBarHeight);
         this._frame.measure(bounds.size);
         this._frame.arrange(bounds);
+        this._frame._updateLayout();
     };
     return RootWindow;
 })();
@@ -120,5 +127,13 @@ var app = new iOSApplication();
 exports.ios = app;
 app.init();
 exports.start = function () {
-    UIApplicationMain(0, null, null, "TNSAppDelegate");
+    try {
+        UIApplicationMain(0, null, null, "TNSAppDelegate");
+    }
+    catch (error) {
+        if (!types.isFunction(exports.onUncaughtError)) {
+            return;
+        }
+        exports.onUncaughtError(error);
+    }
 };

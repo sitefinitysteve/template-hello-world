@@ -10,6 +10,7 @@ var properties;
     properties.fontSizeProperty = styleModule.fontSizeProperty;
     properties.colorProperty = styleModule.colorProperty;
     properties.backgroundColorProperty = styleModule.backgroundColorProperty;
+    properties.textAlignmentProperty = styleModule.textAlignmentProperty;
     properties.getPropertyByName = stylePropertyModule.getPropertyByName;
     properties.getPropertyByCssName = stylePropertyModule.getPropertyByCssName;
     properties.eachProperty = stylePropertyModule.eachProperty;
@@ -20,6 +21,10 @@ var converters;
 (function (converters) {
     converters.colorConverter = convertersModule.colorConverter;
     converters.fontSizeConverter = convertersModule.fontSizeConverter;
+    converters.textAlignConverter = convertersModule.textAlignConverter;
+    converters.thicknessConverter = convertersModule.thicknessConverter;
+    converters.numberConverter = convertersModule.numberConverter;
+    converters.visibilityConverter = convertersModule.visibilityConverter;
 })(converters = exports.converters || (exports.converters = {}));
 ;
 var visualStates;

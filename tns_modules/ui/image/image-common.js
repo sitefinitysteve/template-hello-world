@@ -10,6 +10,7 @@ var proxy = require("ui/core/proxy");
 var imageSource = require("image-source");
 var geometry = require("utils/geometry");
 var trace = require("trace");
+var enums = require("ui/enums");
 var SOURCE = "source";
 var URL = "url";
 var IMAGE = "Image";
@@ -30,16 +31,9 @@ function onUrlPropertyChanged(data) {
     }
 }
 exports.urlProperty = new dependencyObservable.Property(URL, IMAGE, new proxy.PropertyMetadata("", dependencyObservable.PropertyMetadataOptions.None, onUrlPropertyChanged));
-exports.sourceProperty = new dependencyObservable.Property(SOURCE, IMAGE, new proxy.PropertyMetadata(undefined, dependencyObservable.PropertyMetadataOptions.AffectsMeasure));
+exports.sourceProperty = new dependencyObservable.Property(SOURCE, IMAGE, new proxy.PropertyMetadata(undefined, dependencyObservable.PropertyMetadataOptions.None));
 exports.isLoadingProperty = new dependencyObservable.Property(ISLOADING, IMAGE, new proxy.PropertyMetadata(false, dependencyObservable.PropertyMetadataOptions.None));
-var stretch;
-(function (stretch) {
-    stretch.none = "none";
-    stretch.aspectFill = "aspectFill";
-    stretch.aspectFit = "aspectFit";
-    stretch.fill = "fill";
-})(stretch = exports.stretch || (exports.stretch = {}));
-exports.stretchProperty = new dependencyObservable.Property(STRETCH, IMAGE, new proxy.PropertyMetadata(stretch.aspectFit, dependencyObservable.PropertyMetadataOptions.AffectsMeasure));
+exports.stretchProperty = new dependencyObservable.Property(STRETCH, IMAGE, new proxy.PropertyMetadata(enums.Stretch.aspectFit, dependencyObservable.PropertyMetadataOptions.AffectsMeasure));
 var Image = (function (_super) {
     __extends(Image, _super);
     function Image(options) {
@@ -107,7 +101,7 @@ var Image = (function (_super) {
         var scaleH = 1;
         var widthIsFinite = isFinite(availableSize.width);
         var heightIsFinite = isFinite(availableSize.height);
-        if ((imageStretch === stretch.aspectFill || imageStretch === stretch.aspectFit || imageStretch === stretch.fill) && (widthIsFinite || heightIsFinite)) {
+        if ((imageStretch === enums.Stretch.aspectFill || imageStretch === enums.Stretch.aspectFit || imageStretch === enums.Stretch.fill) && (widthIsFinite || heightIsFinite)) {
             scaleW = (contentSize.width > 0) ? availableSize.width / contentSize.width : 0;
             scaleH = (contentSize.height > 0) ? availableSize.height / contentSize.height : 0;
             if (!widthIsFinite) {
@@ -118,11 +112,11 @@ var Image = (function (_super) {
             }
             else {
                 switch (imageStretch) {
-                    case stretch.aspectFit:
+                    case enums.Stretch.aspectFit:
                         scaleH = scaleW < scaleH ? scaleW : scaleH;
                         scaleW = scaleH;
                         break;
-                    case stretch.aspectFill:
+                    case enums.Stretch.aspectFill:
                         scaleH = scaleW > scaleH ? scaleW : scaleH;
                         scaleW = scaleH;
                         break;

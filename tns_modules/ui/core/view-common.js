@@ -61,7 +61,9 @@ var knownEvents;
     knownEvents.unloaded = "unloaded";
 })(knownEvents = exports.knownEvents || (exports.knownEvents = {}));
 var viewIdCounter = 0;
-exports.isVisibleProperty = new dependencyObservable.Property("isVisible", "View", new proxy.PropertyMetadata(true, dependencyObservable.PropertyMetadataOptions.AffectsMeasure | dependencyObservable.PropertyMetadataOptions.AffectsParentMeasure));
+exports.idProperty = new dependencyObservable.Property("id", "View", new proxy.PropertyMetadata(undefined, dependencyObservable.PropertyMetadataOptions.AffectsStyle));
+exports.cssClassProperty = new dependencyObservable.Property("cssClass", "View", new proxy.PropertyMetadata(undefined, dependencyObservable.PropertyMetadataOptions.AffectsStyle));
+exports.isEnabledProperty = new dependencyObservable.Property("isEnabled", "View", new proxy.PropertyMetadata(true));
 var View = (function (_super) {
     __extends(View, _super);
     function View(options) {
@@ -77,105 +79,132 @@ var View = (function (_super) {
         this._gesturesObserver = gestures.observe(this, type, callback);
         return this._gesturesObserver;
     };
-    View.prototype.toString = function () {
-        return this.typeName;
-    };
     Object.defineProperty(View.prototype, "width", {
         get: function () {
-            return this._layoutInfo.width;
+            return this.style.width;
         },
         set: function (value) {
-            this._layoutInfo.width = value;
+            this.style.width = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(View.prototype, "height", {
         get: function () {
-            return this._layoutInfo.height;
+            return this.style.height;
         },
         set: function (value) {
-            this._layoutInfo.height = value;
+            this.style.height = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(View.prototype, "maxWidth", {
         get: function () {
-            return this._layoutInfo.maxWidth;
+            return this.style.maxWidth;
         },
         set: function (value) {
-            this._layoutInfo.maxWidth = value;
+            this.style.maxWidth = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(View.prototype, "maxHeight", {
         get: function () {
-            return this._layoutInfo.maxHeight;
+            return this.style.maxHeight;
         },
         set: function (value) {
-            this._layoutInfo.maxHeight = value;
+            this.style.maxHeight = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(View.prototype, "minHeight", {
         get: function () {
-            return this._layoutInfo.minHeight;
+            return this.style.minHeight;
         },
         set: function (value) {
-            this._layoutInfo.minHeight = value;
+            this.style.minHeight = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(View.prototype, "minWidth", {
         get: function () {
-            return this._layoutInfo.minWidth;
+            return this.style.minWidth;
         },
         set: function (value) {
-            this._layoutInfo.minWidth = value;
+            this.style.minWidth = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(View.prototype, "horizontalAlignment", {
         get: function () {
-            return this._layoutInfo.horizontalAlignment;
+            return this.style.horizontalAlignment;
         },
         set: function (value) {
-            this._layoutInfo.horizontalAlignment = value;
+            this.style.horizontalAlignment = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(View.prototype, "verticalAlignment", {
         get: function () {
-            return this._layoutInfo.verticalAlignment;
+            return this.style.verticalAlignment;
         },
         set: function (value) {
-            this._layoutInfo.verticalAlignment = value;
+            this.style.verticalAlignment = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(View.prototype, "margin", {
         get: function () {
-            return this._layoutInfo.margin;
+            return this.style.margin;
         },
         set: function (value) {
-            this._layoutInfo.margin = geometry.Thickness.convert(value);
+            this.style.margin = geometry.Thickness.convert(value);
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(View.prototype, "isVisible", {
+    Object.defineProperty(View.prototype, "visibility", {
         get: function () {
-            return this._getValue(exports.isVisibleProperty);
+            return this.style.visibility;
         },
         set: function (value) {
-            this._setValue(exports.isVisibleProperty, value);
+            this.style.visibility = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(View.prototype, "isEnabled", {
+        get: function () {
+            return this._getValue(exports.isEnabledProperty);
+        },
+        set: function (value) {
+            this._setValue(exports.isEnabledProperty, value);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(View.prototype, "id", {
+        get: function () {
+            return this._getValue(exports.idProperty);
+        },
+        set: function (value) {
+            this._setValue(exports.idProperty, value);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(View.prototype, "cssClass", {
+        get: function () {
+            return this._getValue(exports.cssClassProperty);
+        },
+        set: function (value) {
+            this._setValue(exports.cssClassProperty, value);
         },
         enumerable: true,
         configurable: true
@@ -187,29 +216,9 @@ var View = (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(View.prototype, "cssClass", {
-        get: function () {
-            return this._cssClass;
-        },
-        set: function (value) {
-            this._cssClass = value;
-        },
-        enumerable: true,
-        configurable: true
-    });
     Object.defineProperty(View.prototype, "visualState", {
         get: function () {
             return this._visualState;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(View.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        set: function (value) {
-            this._id = value;
         },
         enumerable: true,
         configurable: true
@@ -244,10 +253,7 @@ var View = (function (_super) {
     };
     View.prototype.onLoaded = function () {
         this._loadEachChildView();
-        var rootPage = getAncestor(this, "Page");
-        if (rootPage) {
-            rootPage._descendantLoaded(this);
-        }
+        this._applyStyleFromScope();
         this.style._inheritStyleProperties();
         this._isLoaded = true;
         this._emit("loaded");
@@ -277,23 +283,27 @@ var View = (function (_super) {
     };
     View.prototype._onPropertyChanged = function (property, oldValue, newValue) {
         _super.prototype._onPropertyChanged.call(this, property, oldValue, newValue);
-        var metadata = property.metadata;
-        var affectsParentMeasure = metadata.affectsParentMeasure;
-        var affectsParentArrange = metadata.affectsParentArrange;
-        var affectsMeasure = metadata.affectsMeasure;
-        var affectsArrange = metadata.affectsArrange;
-        if (affectsMeasure) {
+        this._checkMetadataOnPropertyChanged(property.metadata);
+    };
+    View.prototype._checkMetadataOnPropertyChanged = function (metadata) {
+        if (metadata.affectsMeasure) {
             this._invalidateMeasure();
         }
-        if (affectsArrange) {
+        if (metadata.affectsArrange) {
             this._invalidateArrange();
         }
         var parent = this.parent;
-        if (affectsParentMeasure && parent) {
-            parent._invalidateMeasure();
+        if (this.parent) {
+            if (metadata.affectsParentMeasure) {
+                parent._invalidateMeasure();
+            }
+            if (metadata.affectsParentArrange) {
+                parent._invalidateArrange();
+            }
         }
-        if (affectsParentArrange && parent) {
-            parent._invalidateArrange();
+        if (metadata.affectsStyle) {
+            this.style._resetCssValues();
+            this._applyStyleFromScope();
         }
     };
     View.prototype._onBindingContextChanged = function (oldValue, newValue) {
@@ -328,6 +338,17 @@ var View = (function (_super) {
     View.prototype._getBounds = function () {
         return this._layoutBounds;
     };
+    View.prototype._getDesiredSize = function () {
+        return this._layoutInfo.desiredSize;
+    };
+    View.prototype._applyStyleFromScope = function () {
+        var rootPage = getAncestor(this, "Page");
+        if (!rootPage || !rootPage.isLoaded) {
+            return;
+        }
+        var scope = rootPage._getStyleScope();
+        scope.applySelectors(this);
+    };
     View.prototype._onAttached = function (context) {
     };
     View.prototype._onDetached = function (force) {
@@ -336,8 +357,12 @@ var View = (function (_super) {
     };
     View.prototype._onContextChanged = function () {
     };
-    View.prototype._getMeasureSpec = function (length) {
+    View.prototype._getMeasureSpec = function (length, horizontal) {
         return undefined;
+    };
+    View.prototype._prepareNativeView = function (view) {
+    };
+    View.prototype._onSubviewDesiredSizeChanged = function () {
     };
     Object.defineProperty(View.prototype, "_childrenCount", {
         get: function () {
@@ -411,6 +436,13 @@ var View = (function (_super) {
     Object.defineProperty(View.prototype, "_nativeView", {
         get: function () {
             return undefined;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(View.prototype, "_isVisible", {
+        get: function () {
+            return this._layoutInfo.isVisible;
         },
         enumerable: true,
         configurable: true

@@ -4,50 +4,16 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var geometry = require("utils/geometry");
 var panelCommon = require("ui/panels/panel-common");
 var trace = require("trace");
 var utils = require("utils/utils");
 var OWNER = "_owner";
-function getLength(measureLength, desiredLength, measureSpecMode) {
-    switch (measureSpecMode) {
-        case utils.ad.layout.EXACTLY:
-            return measureLength;
-        case utils.ad.layout.AT_MOST:
-            return Math.min(measureLength, desiredLength);
-        case utils.ad.layout.UNSPECIFIED:
-        default:
-            return desiredLength;
-    }
-}
 exports.NativePanel = android.view.ViewGroup.extend({
     get owner() {
-        return this._owner;
+        return this[OWNER];
     },
-    onMeasure: function (widthMeasureSpec, heightMeasureSpec) {
-        var widthSpecMode = utils.ad.layout.getMeasureSpecMode(widthMeasureSpec);
-        var widthSpecSize = utils.ad.layout.getMeasureSpecSize(widthMeasureSpec);
-        var heightSpecMode = utils.ad.layout.getMeasureSpecMode(heightMeasureSpec);
-        var heightSpecSize = utils.ad.layout.getMeasureSpecSize(heightMeasureSpec);
-        if (widthSpecSize === 0 && widthSpecMode === utils.ad.layout.UNSPECIFIED) {
-            widthSpecSize = Number.POSITIVE_INFINITY;
-        }
-        if (heightSpecSize === 0 && heightSpecMode === utils.ad.layout.UNSPECIFIED) {
-            heightSpecSize = Number.POSITIVE_INFINITY;
-        }
-        var density = utils.ad.layout.getDisplayDensity();
-        var measureWidth = widthSpecSize / density;
-        var measureHeight = heightSpecSize / density;
-        var desiredSize = this.owner.measure(new geometry.Size(measureWidth, measureHeight), true);
-        var desiredWidth = getLength(widthSpecSize, Math.round(desiredSize.width * density), widthSpecMode);
-        var desiredHeight = getLength(heightSpecSize, Math.round(desiredSize.height * density), heightSpecMode);
-        this.setMeasuredDimension(desiredWidth, desiredHeight);
-    },
-    onLayout: function (changed, left, top, right, bottom) {
-        var density = utils.ad.layout.getDisplayDensity();
-        var arrangeRect = new geometry.Rect(left / density, top / density, (right - left) / density, (bottom - top) / density);
-        this.owner.arrange(arrangeRect, true);
-    }
+    onMeasure: utils.ad.layout.onMeasureNative,
+    onLayout: utils.ad.layout.onLayoutNative
 });
 var Panel = (function (_super) {
     __extends(Panel, _super);

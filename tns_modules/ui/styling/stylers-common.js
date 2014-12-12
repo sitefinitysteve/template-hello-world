@@ -1,3 +1,9 @@
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
 var types = require("utils/types");
 var trace = require("trace");
 var containers = require("utils/containers");
@@ -42,7 +48,7 @@ var Styler = (function () {
             }
         }
         catch (ex) {
-            console.error("Error when setting property: " + property.name + " on view: " + view + " Error: " + ex);
+            trace.write("Error setting property: " + property.name + " on " + view + ": " + ex, trace.categories.Style, trace.messageType.error);
         }
     };
     Styler.prototype.getHandler = function (property) {
@@ -57,6 +63,14 @@ var Styler = (function () {
     return Styler;
 })();
 exports.Styler = Styler;
+var EmptyStyler = (function (_super) {
+    __extends(EmptyStyler, _super);
+    function EmptyStyler() {
+        _super.apply(this, arguments);
+    }
+    return EmptyStyler;
+})(Styler);
+exports.EmptyStyler = EmptyStyler;
 var StylePropertyChangedHandler = (function () {
     function StylePropertyChangedHandler(applyCallback, resetCallback, getNativeValue) {
         this._applyProperty = applyCallback;

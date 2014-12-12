@@ -1,12 +1,9 @@
 var imageSource = require("image-source");
 var types = require("utils/types");
-var USER_AGENT_HEADER = "User-Agent";
-var USER_AGENT = "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36";
 function request(options) {
     return new Promise(function (resolve, reject) {
         try {
             var request = new com.koushikdutta.async.http.AsyncHttpRequest(java.net.URI.create(options.url), options.method);
-            request.addHeader(USER_AGENT_HEADER, USER_AGENT);
             if (options.headers) {
                 for (var key in options.headers) {
                     request.addHeader(key, options.headers[key]);

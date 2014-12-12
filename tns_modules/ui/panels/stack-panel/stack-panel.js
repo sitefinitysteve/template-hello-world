@@ -8,15 +8,11 @@ var panel = require("ui/panels/panel");
 var geometry = require("utils/geometry");
 var proxy = require("ui/core/proxy");
 var dependencyObservable = require("ui/core/dependency-observable");
-var orientation;
-(function (orientation) {
-    orientation.horizontal = "horizontal";
-    orientation.vertical = "vertical";
-})(orientation = exports.orientation || (exports.orientation = {}));
+var enums = require("ui/enums");
 function isValidOrientation(value) {
-    return value === orientation.vertical || value === orientation.horizontal;
+    return value === enums.Orientation.vertical || value === enums.Orientation.horizontal;
 }
-exports.orientationProperty = new dependencyObservable.Property("orientation", "StackPanel", new proxy.PropertyMetadata(orientation.vertical, dependencyObservable.PropertyMetadataOptions.AffectsMeasure, undefined, isValidOrientation));
+exports.orientationProperty = new dependencyObservable.Property("orientation", "StackPanel", new proxy.PropertyMetadata(enums.Orientation.vertical, dependencyObservable.PropertyMetadataOptions.AffectsMeasure, undefined, isValidOrientation));
 var StackPanel = (function (_super) {
     __extends(StackPanel, _super);
     function StackPanel() {
@@ -33,12 +29,12 @@ var StackPanel = (function (_super) {
         configurable: true
     });
     StackPanel.prototype._measureOverride = function (availableSize) {
-        var isHorizontal = this.orientation === orientation.horizontal;
+        var isHorizontal = this.orientation === enums.Orientation.horizontal;
         var desiredSize = new geometry.Size(0, 0);
         var measureSize = isHorizontal ? new geometry.Size(Number.POSITIVE_INFINITY, availableSize.height) : new geometry.Size(availableSize.width, Number.POSITIVE_INFINITY);
         for (var i = 0; i < this._children.length; i++) {
             var child = this._children[i];
-            if (child && child.isVisible) {
+            if (child && child._isVisible) {
                 var childDesiredSize = child.measure(measureSize);
                 if (isHorizontal) {
                     desiredSize.width += childDesiredSize.width;
@@ -53,11 +49,11 @@ var StackPanel = (function (_super) {
         return desiredSize;
     };
     StackPanel.prototype._arrangeOverride = function (finalSize) {
-        var isHorizontal = this.orientation === orientation.horizontal;
+        var isHorizontal = this.orientation === enums.Orientation.horizontal;
         var arrangeRect = new geometry.Rect(0, 0, 0, 0);
         for (var i = 0; i < this._children.length; i++) {
             var child = this._children[i];
-            if (child && child.isVisible) {
+            if (child && child._isVisible) {
                 var childDesiredSize = child._layoutInfo.desiredSize;
                 if (isHorizontal) {
                     arrangeRect.width = childDesiredSize.width;

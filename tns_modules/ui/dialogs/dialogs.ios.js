@@ -1,3 +1,4 @@
+var dialogs = require("ui/dialogs");
 var dialogs_common = require("ui/dialogs/dialogs-common");
 require("utils/module-merge").merge(dialogs_common, exports);
 var DelegateClass = NSObject.extend({
@@ -73,11 +74,11 @@ function confirm(message, options) {
 }
 exports.confirm = confirm;
 function prompt(message, defaultText, options) {
-    if (options === void 0) { options = { title: dialogs_common.PROMPT, okButtonText: dialogs_common.OK, cancelButtonText: dialogs_common.CANCEL, inputType: 0 /* PlainText */ }; }
+    if (options === void 0) { options = { title: dialogs_common.PROMPT, okButtonText: dialogs_common.OK, cancelButtonText: dialogs_common.CANCEL, inputType: dialogs.inputType.text }; }
     return new Promise(function (resolve, reject) {
         try {
             var alert = createUIAlertView(message, options);
-            if (options.inputType === 1 /* Password */) {
+            if (options.inputType === dialogs.inputType.password) {
                 alert.alertViewStyle = UIAlertViewStyle.UIAlertViewStyleSecureTextInput;
             }
             else {

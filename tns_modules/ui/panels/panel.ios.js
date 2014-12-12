@@ -10,10 +10,6 @@ var NativePanel = UIView.extend({
     get owner() {
         return this[OWNER];
     },
-    layoutSubviews: function () {
-        this.super.layoutSubviews();
-        this.owner.layoutSubviews();
-    },
     didMoveToWindow: function () {
         this.super.didMoveToWindow();
         this.owner.didMoveToWindow();
@@ -53,11 +49,6 @@ var Panel = (function (_super) {
         _super.prototype._removeViewFromNativeVisualTree.call(this, child);
         if (child._nativeView) {
             child._nativeView.removeFromSuperview();
-        }
-    };
-    Panel.prototype.layoutSubviews = function () {
-        if (this.isLoaded) {
-            this._updateLayout();
         }
     };
     Panel.prototype.didMoveToWindow = function () {

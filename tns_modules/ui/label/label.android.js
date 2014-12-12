@@ -5,14 +5,6 @@ var __extends = this.__extends || function (d, b) {
     d.prototype = new __();
 };
 var common = require("ui/label/label-common");
-function onTextPropertyChanged(data) {
-    var label = data.object;
-    if (!label.android) {
-        return;
-    }
-    label.android.setText(data.newValue);
-}
-common.textProperty.metadata.onSetNativeValue = onTextPropertyChanged;
 function onTextWrapPropertyChanged(data) {
     var label = data.object;
     if (!label.android) {

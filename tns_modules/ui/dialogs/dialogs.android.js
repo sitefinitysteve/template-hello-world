@@ -1,3 +1,4 @@
+var dialogs = require("ui/dialogs");
 var dialogs_common = require("ui/dialogs/dialogs-common");
 var appmodule = require("application");
 require("utils/module-merge").merge(dialogs_common, exports);
@@ -72,12 +73,12 @@ function confirm(message, options) {
 }
 exports.confirm = confirm;
 function prompt(message, defaultText, options) {
-    if (options === void 0) { options = { title: dialogs_common.PROMPT, okButtonText: dialogs_common.OK, cancelButtonText: dialogs_common.CANCEL, inputType: 0 /* PlainText */ }; }
+    if (options === void 0) { options = { title: dialogs_common.PROMPT, okButtonText: dialogs_common.OK, cancelButtonText: dialogs_common.CANCEL, inputType: dialogs.inputType.password }; }
     return new Promise(function (resolve, reject) {
         try {
             var alert = createAlertDialog(message, options);
             var input = new android.widget.EditText(appmodule.android.context);
-            if (options.inputType === 1 /* Password */) {
+            if (options.inputType === dialogs.inputType.password) {
                 input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
             }
             input.setText(defaultText ? defaultText : "");

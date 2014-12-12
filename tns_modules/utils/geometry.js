@@ -1,4 +1,5 @@
 var types = require("utils/types");
+var definition = require("utils/geometry");
 var Point = (function () {
     function Point(x, y) {
         this.x = x;
@@ -151,7 +152,7 @@ var Thickness = (function () {
             var bottom = parseInt(arr[3]) || top;
             return new Thickness(left, top, right, bottom);
         }
-        else if (value instanceof Thickness) {
+        else if (value instanceof definition.Thickness) {
             return value;
         }
         else {

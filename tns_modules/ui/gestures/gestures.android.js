@@ -8,6 +8,13 @@ var GesturesObserver = (function () {
     function GesturesObserver(callback) {
         this._callback = callback;
     }
+    Object.defineProperty(GesturesObserver.prototype, "callback", {
+        get: function () {
+            return this._callback;
+        },
+        enumerable: true,
+        configurable: true
+    });
     GesturesObserver.prototype.observe = function (target, type) {
         var _this = this;
         if (target) {
@@ -40,17 +47,17 @@ var GesturesObserver = (function () {
     GesturesObserver.prototype._attach = function (target, type) {
         this.disconnect();
         this._target = target;
-        var callback = this._callback;
+        var that = new WeakRef(this);
         if (type & definition.GestureTypes.Tap || type & definition.GestureTypes.DoubleTap || type & definition.GestureTypes.LongPress || type & definition.GestureTypes.Pan) {
             var listenerType = android.view.GestureDetector.SimpleOnGestureListener.extend({
                 onSingleTapConfirmed: function (motionEvent) {
                     var args = _getArgs(definition.GestureTypes.Tap, target, motionEvent);
-                    _executeCallback(callback, args);
+                    _executeCallback(that, args);
                     return true;
                 },
                 onDoubleTap: function (motionEvent) {
                     var args = _getArgs(definition.GestureTypes.DoubleTap, target, motionEvent);
-                    _executeCallback(callback, args);
+                    _executeCallback(that, args);
                     return true;
                 },
                 onDown: function (motionEvent) {
@@ -58,12 +65,12 @@ var GesturesObserver = (function () {
                 },
                 onLongPress: function (motionEvent) {
                     var args = _getArgs(definition.GestureTypes.LongPress, target, motionEvent);
-                    _executeCallback(callback, args);
+                    _executeCallback(that, args);
                     return true;
                 },
                 onScroll: function (initialEvent, currentEvent, distanceX, distanceY) {
                     var args = _getPanArgs(target, initialEvent, currentEvent);
-                    _executeCallback(callback, args);
+                    _executeCallback(that, args);
                     return true;
                 }
             });
@@ -78,7 +85,7 @@ var GesturesObserver = (function () {
                         android: detector,
                         scale: detector.getScaleFactor()
                     };
-                    _executeCallback(callback, args);
+                    _executeCallback(that, args);
                     return true;
                 }
             });
@@ -99,12 +106,12 @@ var GesturesObserver = (function () {
                             if (Math.abs(deltaX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                                 if (deltaX > 0) {
                                     args = _getSwipeArgs(definition.SwipeDirection.Right, target, initialEvent, currentEvent);
-                                    _executeCallback(callback, args);
+                                    _executeCallback(that, args);
                                     result = true;
                                 }
                                 else {
                                     args = _getSwipeArgs(definition.SwipeDirection.Left, target, initialEvent, currentEvent);
-                                    _executeCallback(callback, args);
+                                    _executeCallback(that, args);
                                     result = true;
                                 }
                             }
@@ -113,12 +120,12 @@ var GesturesObserver = (function () {
                             if (Math.abs(deltaY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
                                 if (deltaY > 0) {
                                     args = _getSwipeArgs(definition.SwipeDirection.Down, target, initialEvent, currentEvent);
-                                    _executeCallback(callback, args);
+                                    _executeCallback(that, args);
                                     result = true;
                                 }
                                 else {
                                     args = _getSwipeArgs(definition.SwipeDirection.Up, target, initialEvent, currentEvent);
-                                    _executeCallback(callback, args);
+                                    _executeCallback(that, args);
                                     result = true;
                                 }
                             }
@@ -131,7 +138,6 @@ var GesturesObserver = (function () {
             });
             this._swipeGestureDetector = new android.support.v4.view.GestureDetectorCompat(target._context, new listenerTypeSwipe());
         }
-        var that = new WeakRef(this);
         target.android.setOnTouchListener(new android.view.View.OnTouchListener({
             onTouch: function (view, motionEvent) {
                 var owner = that.get();
@@ -156,7 +162,7 @@ var GesturesObserver = (function () {
                             android: motionEvent,
                             rotation: degrees,
                         };
-                        _executeCallback(callback, args);
+                        _executeCallback(that, args);
                     }
                 }
                 return true;
@@ -188,8 +194,10 @@ function _getPanArgs(view, initialEvent, currentEvent) {
         android: { initial: initialEvent, current: currentEvent }
     };
 }
-function _executeCallback(callback, args) {
-    if (callback) {
-        callback(args);
+function _executeCallback(observerWeakRef, args) {
+    var observer;
+    observer = observerWeakRef.get();
+    if (observer && observer.callback) {
+        observer.callback(args);
     }
 }

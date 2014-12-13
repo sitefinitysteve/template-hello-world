@@ -99,7 +99,8 @@ var categories;
     categories.Debug = "Debug";
     categories.Navigation = "Navigation";
     categories.Test = "Test";
-    categories.All = categories.VisualTreeEvents + "," + categories.Layout + "," + categories.Style + "," + categories.ViewHierarchy + "," + categories.NativeLifecycle + "," + categories.Debug + "," + categories.Navigation + "," + categories.Test;
+    categories.Binding = "Binding";
+    categories.All = categories.VisualTreeEvents + "," + categories.Layout + "," + categories.Style + "," + categories.ViewHierarchy + "," + categories.NativeLifecycle + "," + categories.Debug + "," + categories.Navigation + "," + categories.Test + "," + categories.Binding;
     categories.separator = ",";
     function concat() {
         var i;

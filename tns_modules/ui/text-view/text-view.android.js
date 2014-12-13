@@ -37,6 +37,7 @@ var TextView = (function (_super) {
     };
     TextView.prototype._createUI = function () {
         this._android = new android.widget.EditText(this._context);
+        this._android.setGravity(android.view.Gravity.TOP | android.view.Gravity.LEFT);
         this._android.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         this._android.setTag(this._android.getKeyListener());
         this._setNativeEditable(this.editable);
@@ -56,7 +57,7 @@ var TextView = (function (_super) {
         this._android.addTextChangedListener(textWatcher);
     };
     TextView.prototype._onTextPropertyChanged = function (data) {
-        this.android.setText(data.newValue, android.widget.TextView.BufferType.EDITABLE);
+        this.android.setText(data.newValue + "", android.widget.TextView.BufferType.EDITABLE);
     };
     return TextView;
 })(common.TextView);

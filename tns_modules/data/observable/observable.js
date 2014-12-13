@@ -32,14 +32,14 @@ var Observable = (function () {
             });
         }
     };
-    Observable.prototype.removeEventListener = function (eventNames, callback) {
+    Observable.prototype.removeEventListener = function (eventNames, callback, thisArg) {
         var events = eventNames.split(",");
         for (var i = 0, l = events.length; i < l; i++) {
             var event = events[i].trim();
             if (callback) {
                 var list = this._getEventList(event, false);
                 if (list) {
-                    var index = this._indexOfListener(list, callback);
+                    var index = this._indexOfListener(list, callback, thisArg);
                     if (index >= 0) {
                         list.splice(index, 1);
                     }
@@ -114,13 +114,20 @@ var Observable = (function () {
         }
         return list;
     };
-    Observable.prototype._indexOfListener = function (list, callback) {
+    Observable.prototype._indexOfListener = function (list, callback, thisArg) {
         var i;
         var entry;
         for (i = 0; i < list.length; i++) {
             entry = list[i];
-            if (entry.callback === callback) {
-                return i;
+            if (thisArg) {
+                if (entry.callback === callback && entry.thisArg === thisArg) {
+                    return i;
+                }
+            }
+            else {
+                if (entry.callback === callback) {
+                    return i;
+                }
             }
         }
         return -1;

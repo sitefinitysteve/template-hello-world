@@ -8,7 +8,10 @@ var observable = require("data/observable");
 var view = require("ui/core/view");
 var proxy = require("ui/core/proxy");
 var dependencyObservable = require("ui/core/dependency-observable");
+var builder = require("ui/builder");
+var label = require("ui/label");
 var ITEMS = "items";
+var ITEMTEMPLATE = "itemTemplate";
 var ISSCROLLING = "isScrolling";
 var LISTVIEW = "ListView";
 var ITEMSCHANGED = "_itemsChanged";
@@ -19,6 +22,10 @@ var knownEvents;
     knownEvents.itemTap = "itemTap";
     knownEvents.loadMoreItems = "loadMoreItems";
 })(knownEvents = exports.knownEvents || (exports.knownEvents = {}));
+var knownTemplates;
+(function (knownTemplates) {
+    knownTemplates.itemTemplate = "itemTemplate";
+})(knownTemplates = exports.knownTemplates || (exports.knownTemplates = {}));
 function onItemsPropertyChanged(data) {
     var listView = data.object;
     var itemsChanged = listView[ITEMSCHANGED];
@@ -30,7 +37,12 @@ function onItemsPropertyChanged(data) {
     }
     listView.refresh();
 }
+function onItemTemplatePropertyChanged(data) {
+    var listView = data.object;
+    listView.refresh();
+}
 exports.itemsProperty = new dependencyObservable.Property(ITEMS, LISTVIEW, new proxy.PropertyMetadata(undefined, dependencyObservable.PropertyMetadataOptions.AffectsMeasure, onItemsPropertyChanged));
+exports.itemTemplateProperty = new dependencyObservable.Property(ITEMTEMPLATE, LISTVIEW, new proxy.PropertyMetadata(undefined, dependencyObservable.PropertyMetadataOptions.AffectsMeasure, onItemTemplatePropertyChanged));
 exports.isScrollingProperty = new dependencyObservable.Property(ISSCROLLING, LISTVIEW, new proxy.PropertyMetadata(false, dependencyObservable.PropertyMetadataOptions.None));
 var ListView = (function (_super) {
     __extends(ListView, _super);
@@ -51,6 +63,16 @@ var ListView = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(ListView.prototype, "itemTemplate", {
+        get: function () {
+            return this._getValue(exports.itemTemplateProperty);
+        },
+        set: function (value) {
+            this._setValue(exports.itemTemplateProperty, value);
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(ListView.prototype, "isScrolling", {
         get: function () {
             return this._getValue(exports.isScrollingProperty);
@@ -62,6 +84,26 @@ var ListView = (function (_super) {
         configurable: true
     });
     ListView.prototype.refresh = function () {
+    };
+    ListView.prototype._getItemTemplateContent = function (index) {
+        var view;
+        if (this.itemTemplate && this.items) {
+            view = builder.parse(this.itemTemplate, this._getDataItem(index));
+        }
+        return view;
+    };
+    ListView.prototype._prepareItem = function (item, index) {
+        if (item) {
+            item.bindingContext = this._getDataItem(index);
+        }
+    };
+    ListView.prototype._getDataItem = function (index) {
+        return this.items.getItem ? this.items.getItem(index) : this.items[index];
+    };
+    ListView.prototype._getDefaultItemContent = function (index) {
+        var lbl = new label.Label();
+        lbl.text = this._getDataItem(index) + "";
+        return lbl;
     };
     return ListView;
 })(view.View);

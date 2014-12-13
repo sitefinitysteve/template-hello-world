@@ -98,6 +98,24 @@ var Frame = (function (_super) {
             this.currentPage.arrange(new geometry.Rect(0, this.navigationBarHeight, finalSize.width, finalSize.height - this.navigationBarHeight));
         }
     };
+    Frame.prototype._getBounds = function () {
+        return this._bounds;
+    };
+    Frame.prototype._setBounds = function (rect) {
+        this._bounds = rect;
+        var frame = CGRectMake(rect.x, rect.y, rect.width, rect.height);
+        var nativeView;
+        if (!this.parent && this._nativeView.subviews.count > 0) {
+            nativeView = this._nativeView.subviews[0];
+        }
+        else {
+            nativeView = this._nativeView;
+        }
+        if (!CGRectEqualToRect(nativeView.frame, frame)) {
+            trace.write(this + ", Native setFrame: " + NSStringFromCGRect(frame), trace.categories.Layout);
+            nativeView.frame = frame;
+        }
+    };
     Frame.prototype.arrangeView = function () {
         if (this.isLoaded) {
             this._updateLayout();
@@ -135,6 +153,7 @@ var body = {
     },
     viewDidLoad: function () {
         this.view.autoresizesSubviews = false;
+        this.view.autoresizingMask = UIViewAutoresizing.UIViewAutoresizingNone;
     },
     viewDidLayoutSubviews: function () {
         trace.write(this.owner + " viewDidLayoutSubviews, isLoaded = " + this.owner.isLoaded, trace.categories.ViewHierarchy);
@@ -168,8 +187,8 @@ var body = {
         var newPage = viewController[PAGE];
         frame._processNavigationStack(newPage);
     },
-    shouldAutorotate: function () {
-        return false;
+    supportedInterfaceOrientation: function () {
+        return UIInterfaceOrientationMask.UIInterfaceOrientationMaskAll;
     }
 };
 var uiNavigationControllerExtended = UINavigationController.extend(body, { protocols: [UINavigationControllerDelegate] });
@@ -178,6 +197,7 @@ var iOSFrame = (function () {
         this._controller = uiNavigationControllerExtended.new();
         this._controller.delegate = this._controller;
         this._controller[OWNER] = view;
+        this._controller.automaticallyAdjustsScrollViewInsets = false;
         this.showNavigationBar = false;
     }
     Object.defineProperty(iOSFrame.prototype, "controller", {

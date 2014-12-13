@@ -12,8 +12,8 @@ exports.secureProperty = new dependencyObservable.Property("secure", "TextField"
 require("utils/module-merge").merge(textBase, exports);
 var TextField = (function (_super) {
     __extends(TextField, _super);
-    function TextField() {
-        _super.apply(this, arguments);
+    function TextField(options) {
+        _super.call(this, options);
     }
     Object.defineProperty(TextField.prototype, "hint", {
         get: function () {

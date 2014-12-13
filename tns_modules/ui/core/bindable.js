@@ -6,6 +6,10 @@ var __extends = this.__extends || function (d, b) {
 };
 var observable = require("data/observable");
 var dependencyObservable = require("ui/core/dependency-observable");
+var weakEventListener = require("ui/core/weakEventListener");
+var types = require("utils/types");
+var trace = require("trace");
+var polymerExpressions = require("js-libs/polymer-expressions");
 exports.bindingContextProperty = new dependencyObservable.Property("bindingContext", "Bindable", new dependencyObservable.PropertyMetadata(undefined, dependencyObservable.PropertyMetadataOptions.Inheritable));
 var Bindable = (function (_super) {
     __extends(Bindable, _super);
@@ -75,7 +79,7 @@ var Bindable = (function (_super) {
         var binding;
         for (var p in this._bindings) {
             binding = this._bindings[p];
-            if (binding.source && binding.source !== oldValue) {
+            if (binding.source && binding.source.get() !== oldValue) {
                 continue;
             }
             binding.unbind();
@@ -90,30 +94,40 @@ exports.Bindable = Bindable;
 var Binding = (function () {
     function Binding(target, options) {
         this.updating = false;
-        this.target = target;
+        this.weakEL = weakEventListener.WeakEventListener;
+        this.target = new WeakRef(target);
         this.options = options;
     }
     Binding.prototype.bind = function (obj) {
         if (!obj) {
             throw new Error("Expected valid object reference as a source in the Binding.bind method.");
         }
-        this.source = obj;
+        this.source = new WeakRef(obj);
         this.updateTarget(this.getSourceProperty());
         if (!this.sourceOptions) {
             this.sourceOptions = this.resolveOptions(this.source, this.options.sourceProperty);
         }
-        if (this.sourceOptions.instance instanceof observable.Observable) {
-            this.sourceOptions.instance.addEventListener(observable.knownEvents.propertyChange, this.onSourcePropertyChanged, this);
+        var sourceOptionsInstance = this.sourceOptions.instance.get();
+        if (sourceOptionsInstance instanceof observable.Observable) {
+            this.weakEventListenerOptions = {
+                target: this.target,
+                source: this.sourceOptions.instance,
+                eventName: observable.knownEvents.propertyChange,
+                handler: this.onSourcePropertyChanged,
+                handlerContext: this,
+                key: this.options.targetProperty
+            };
+            this.weakEL.addWeakEventListener(this.weakEventListenerOptions);
         }
     };
     Binding.prototype.unbind = function () {
-        if (!this.source || !this.sourceOptions) {
+        if (!this.source) {
             return;
         }
-        if (this.sourceOptions.instance instanceof observable.Observable) {
-            this.sourceOptions.instance.removeEventListener(observable.knownEvents.propertyChange, this.onSourcePropertyChanged);
-        }
-        this.source = undefined;
+        this.weakEL.removeWeakEventListener(this.weakEventListenerOptions);
+        this.weakEventListenerOptions = undefined;
+        this.source.clear();
+        this.sourceOptions.instance.clear();
         this.sourceOptions = undefined;
         this.targetOptions = undefined;
     };
@@ -122,23 +136,43 @@ var Binding = (function () {
             this.updateSource(value);
         }
     };
-    Binding.prototype.onSourcePropertyChanged = function (data) {
-        if (data.propertyName !== this.options.sourceProperty) {
-            return;
+    Binding.prototype._isExpression = function (expression) {
+        return expression.indexOf(" ") !== -1;
+    };
+    Binding.prototype._getExpressionValue = function (expression) {
+        var exp = polymerExpressions.PolymerExpressions.getExpression(expression);
+        if (exp) {
+            return exp.getValue(this.source && this.source.get && this.source.get() || global);
         }
-        this.updateTarget(data.value);
+        return undefined;
+    };
+    Binding.prototype.onSourcePropertyChanged = function (data) {
+        if (this._isExpression(this.options.sourceProperty)) {
+            this.updateTarget(this._getExpressionValue(this.options.sourceProperty));
+        }
+        else if (data.propertyName === this.options.sourceProperty) {
+            this.updateTarget(data.value);
+        }
     };
     Binding.prototype.getSourceProperty = function () {
+        if (this._isExpression(this.options.sourceProperty)) {
+            return this._getExpressionValue(this.options.sourceProperty);
+        }
         if (!this.sourceOptions) {
             this.sourceOptions = this.resolveOptions(this.source, this.options.sourceProperty);
         }
-        if (this.sourceOptions.instance instanceof observable.Observable) {
-            return this.sourceOptions.instance.get(this.sourceOptions.property);
+        var value;
+        var sourceOptionsInstance = this.sourceOptions.instance.get();
+        if (sourceOptionsInstance instanceof observable.Observable) {
+            value = sourceOptionsInstance.get(this.sourceOptions.property);
         }
-        return this.sourceOptions.instance[this.sourceOptions.property];
+        else if (sourceOptionsInstance && this.sourceOptions.property && this.sourceOptions.property in sourceOptionsInstance) {
+            value = sourceOptionsInstance[this.sourceOptions.property];
+        }
+        return value;
     };
     Binding.prototype.updateTarget = function (value) {
-        if (this.updating || !this.target) {
+        if (this.updating || (!this.target || !this.target.get())) {
             return;
         }
         if (!this.targetOptions) {
@@ -147,7 +181,7 @@ var Binding = (function () {
         this.updateOptions(this.targetOptions, value);
     };
     Binding.prototype.updateSource = function (value) {
-        if (this.updating || !this.source) {
+        if (this.updating || (!this.source || !this.source.get())) {
             return;
         }
         if (!this.sourceOptions) {
@@ -156,25 +190,43 @@ var Binding = (function () {
         this.updateOptions(this.sourceOptions, value);
     };
     Binding.prototype.resolveOptions = function (obj, property) {
-        var properties = property.split(".");
-        var i, currentObject = obj;
-        for (i = 0; i < properties.length - 1; i++) {
-            currentObject = currentObject[properties[i]];
+        var options;
+        if (!this._isExpression(property) && types.isString(property) && property.indexOf(".") !== -1) {
+            var properties = property.split(".");
+            var i;
+            var currentObject = obj.get();
+            for (i = 0; i < properties.length - 1; i++) {
+                currentObject = currentObject[properties[i]];
+            }
+            options = {
+                instance: new WeakRef(currentObject),
+                property: properties[properties.length - 1]
+            };
         }
-        return {
-            instance: currentObject,
-            property: properties[properties.length - 1]
-        };
+        else {
+            options = {
+                instance: obj,
+                property: property
+            };
+        }
+        return options;
     };
     Binding.prototype.updateOptions = function (options, value) {
         this.updating = true;
-        if (options.instance instanceof observable.Observable) {
-            options.instance.set(options.property, value);
+        var optionsInstance = options.instance.get();
+        try {
+            if (optionsInstance instanceof observable.Observable) {
+                optionsInstance.set(options.property, value);
+            }
+            else {
+                optionsInstance[options.property] = value;
+            }
         }
-        else {
-            options.instance[options.property] = value;
+        catch (ex) {
+            trace.write("Binding error while setting property " + options.property + " of " + optionsInstance + ": " + ex, trace.categories.Binding, trace.messageType.error);
         }
         this.updating = false;
     };
     return Binding;
 })();
+exports.Binding = Binding;

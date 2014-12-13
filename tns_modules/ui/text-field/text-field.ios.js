@@ -47,9 +47,6 @@ var TextField = (function (_super) {
         enumerable: true,
         configurable: true
     });
-    TextField.prototype._onTextPropertyChanged = function (data) {
-        this.ios.text = data.newValue;
-    };
     return TextField;
 })(common.TextField);
 exports.TextField = TextField;

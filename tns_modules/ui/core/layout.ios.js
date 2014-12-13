@@ -6,19 +6,15 @@ var __extends = this.__extends || function (d, b) {
 };
 var geometry = require("utils/geometry");
 var common = require("ui/core/layout-common");
-var timer = require("timer");
 var trace = require("trace");
+var enums = require("ui/enums");
 require("utils/module-merge").merge(common, exports);
-var LayoutInfo = (function () {
+var LayoutInfo = (function (_super) {
+    __extends(LayoutInfo, _super);
     function LayoutInfo(view) {
-        this._minSize = geometry.Size.zero;
-        this._size = new geometry.Size(Number.NaN, Number.NaN);
-        this._maxSize = new geometry.Size(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+        _super.call(this, view);
         this.desiredSize = geometry.Size.zero;
         this.renderSize = geometry.Size.zero;
-        this._margin = new geometry.Thickness(0, 0, 0, 0);
-        this._horizontalAlignment = common.HorizontalAlignment.stretch;
-        this._verticalAlignment = common.VerticalAlignment.stretch;
         this.needsClipBounds = false;
         this.visualOffset = geometry.Point.zero;
         this.isLayoutSuspended = true;
@@ -30,148 +26,7 @@ var LayoutInfo = (function () {
         this.arrangeInProgress = false;
         this.previousAvailableSize = geometry.Size.empty;
         this.treeLevel = 0;
-        this._view = view;
     }
-    LayoutInfo.isMaxWidthHeightValid = function (value) {
-        return !isNaN(value) && value >= 0.0;
-    };
-    LayoutInfo.isMinWidthHeightValid = function (value) {
-        return !isNaN(value) && value >= 0.0 && isFinite(value);
-    };
-    LayoutInfo.isWidthHeightValid = function (value) {
-        return isNaN(value) || (value >= 0.0 && isFinite(value));
-    };
-    Object.defineProperty(LayoutInfo.prototype, "view", {
-        get: function () {
-            return this._view;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(LayoutInfo.prototype, "parent", {
-        get: function () {
-            return this.view.parent;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(LayoutInfo.prototype, "width", {
-        get: function () {
-            return this._size.width;
-        },
-        set: function (value) {
-            var valid = LayoutInfo.isWidthHeightValid(value);
-            if (!valid) {
-                throw new Error("Width must be NaN or positive number.");
-            }
-            var size = this._size;
-            if (value !== size.width) {
-                this.invalidateMeasure();
-            }
-            this.setSize(value, size.height);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(LayoutInfo.prototype, "height", {
-        get: function () {
-            return this._size.height;
-        },
-        set: function (value) {
-            var valid = LayoutInfo.isWidthHeightValid(value);
-            if (!valid) {
-                throw new Error("Height must be NaN or >= 0.");
-            }
-            var size = this._size;
-            if (value !== size.height) {
-                this.invalidateMeasure();
-            }
-            this.setSize(size.width, value);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(LayoutInfo.prototype, "maxWidth", {
-        get: function () {
-            return this._maxSize.width;
-        },
-        set: function (value) {
-            var valid = LayoutInfo.isMaxWidthHeightValid(value);
-            if (!valid) {
-                throw new Error("MaxWidth must be >= 0.");
-            }
-            var maxSize = this._maxSize;
-            if (value !== maxSize.width) {
-                this.invalidateMeasure();
-            }
-            this.setMaxSize(value, maxSize.height);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(LayoutInfo.prototype, "maxHeight", {
-        get: function () {
-            return this._maxSize.height;
-        },
-        set: function (value) {
-            var valid = LayoutInfo.isMaxWidthHeightValid(value);
-            if (!valid) {
-                throw new Error("MaxHeight must be >= 0.");
-            }
-            var maxSize = this._maxSize;
-            if (value !== maxSize.height) {
-                this.invalidateMeasure();
-            }
-            this.setMaxSize(maxSize.width, value);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(LayoutInfo.prototype, "minHeight", {
-        get: function () {
-            return this._minSize.height;
-        },
-        set: function (value) {
-            var valid = LayoutInfo.isMinWidthHeightValid(value);
-            if (!valid) {
-                throw new Error("MinHeight must be >= 0 and not INFINITY.");
-            }
-            var minSize = this._minSize;
-            if (value !== minSize.height) {
-                this.invalidateMeasure();
-            }
-            this.setMinSize(minSize.width, value);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(LayoutInfo.prototype, "minWidth", {
-        get: function () {
-            return this._minSize.width;
-        },
-        set: function (value) {
-            var valid = LayoutInfo.isMinWidthHeightValid(value);
-            if (!valid) {
-                throw new Error("MinWidth must be >= 0 and not INFINITY.");
-            }
-            var minSize = this._minSize;
-            if (value !== minSize.width) {
-                this.invalidateMeasure();
-            }
-            this.setMinSize(value, minSize.height);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    LayoutInfo.prototype.setMinSize = function (minWidth, minHeight) {
-        this._minSize = new geometry.Size(minWidth, minHeight);
-    };
-    LayoutInfo.prototype.setMaxSize = function (maxWidth, maxHeight) {
-        this._maxSize = new geometry.Size(maxWidth, maxHeight);
-    };
-    LayoutInfo.prototype.setSize = function (width, height) {
-        this._size = new geometry.Size(width, height);
-    };
     Object.defineProperty(LayoutInfo.prototype, "isMeasureValid", {
         get: function () {
             return !this.measureDirty;
@@ -186,62 +41,19 @@ var LayoutInfo = (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(LayoutInfo.prototype, "horizontalAlignment", {
-        get: function () {
-            return this._horizontalAlignment;
-        },
-        set: function (value) {
-            if (this._horizontalAlignment !== value) {
-                this._horizontalAlignment = value;
-                this.invalidateArrange();
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(LayoutInfo.prototype, "verticalAlignment", {
-        get: function () {
-            return this._verticalAlignment;
-        },
-        set: function (value) {
-            if (this._verticalAlignment !== value) {
-                this._verticalAlignment = value;
-                this.invalidateArrange();
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(LayoutInfo.prototype, "margin", {
-        get: function () {
-            return this._margin;
-        },
-        set: function (margin) {
-            if (!geometry.Thickness.equals(this._margin, margin)) {
-                this._margin = margin;
-                this.invalidateMeasure();
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(LayoutInfo.prototype, "isVisible", {
-        get: function () {
-            if (this.nativeView) {
-                return !this.nativeView.hidden;
-            }
-            return true;
-        },
-        enumerable: true,
-        configurable: true
-    });
     Object.defineProperty(LayoutInfo.prototype, "nativeView", {
         get: function () {
-            return this._view._nativeView;
+            return this.view._nativeView;
         },
         enumerable: true,
         configurable: true
     });
+    LayoutInfo.prototype.suspendLayoutDispatching = function () {
+        LayoutManager.current.suspendLayoutDispatching();
+    };
+    LayoutInfo.prototype.resumeLayoutDispatching = function () {
+        LayoutManager.current.resumeLayoutDispatching();
+    };
     LayoutInfo.prototype.invalidateMeasure = function () {
         if (!this.measureDirty && !this.measureInProgress) {
             if (!this.neverMeasured) {
@@ -253,19 +65,6 @@ var LayoutInfo = (function () {
     };
     LayoutInfo.prototype.invalidateMeasureInternal = function () {
         this.measureDirty = true;
-        var nativeView = this.nativeView;
-        if (nativeView) {
-            nativeView.setNeedsLayout();
-        }
-        var parent = this.parent;
-        while (parent) {
-            parent._invalidateMeasure();
-            var isPanel = !!parent.children;
-            if (isPanel) {
-                break;
-            }
-            parent = parent.parent;
-        }
     };
     LayoutInfo.prototype.invalidateArrange = function () {
         if (!this.arrangeDirty && !this.arrangeInProgress) {
@@ -278,7 +77,6 @@ var LayoutInfo = (function () {
     };
     LayoutInfo.prototype.invalidateArrangeInternal = function () {
         this.arrangeDirty = true;
-        this.invalidateMeasureInternal();
     };
     LayoutInfo.prototype.measure = function (availableSize) {
         trace.write("Measure: " + this.view + " with: " + availableSize, trace.categories.Layout);
@@ -336,7 +134,7 @@ var LayoutInfo = (function () {
         }
     };
     LayoutInfo.prototype.measureCore = function (availableSize) {
-        var margin = this._margin;
+        var margin = this.margin;
         var horizontalMargin = (margin) ? margin.left + margin.right : 0.0;
         var verticalMargin = (margin) ? margin.top + margin.bottom : 0.0;
         var mm = new common.MinMax(this);
@@ -377,8 +175,8 @@ var LayoutInfo = (function () {
     };
     LayoutInfo.prototype.notifyDesiredSizeChanged = function () {
         var parent = this.parent;
-        if (parent) {
-            parent._invalidateMeasure();
+        if (parent && !(parent._layoutInfo).measureInProgress) {
+            parent._onSubviewDesiredSizeChanged();
         }
     };
     LayoutInfo.prototype.isRenderable = function () {
@@ -429,14 +227,14 @@ var LayoutInfo = (function () {
                 manager.arrangeQueue.remove(this);
             }
             if (this.isRenderable()) {
-                this._view._setBounds(new geometry.Rect(this.visualOffset.x, this.visualOffset.y, this.renderSize.width, this.renderSize.height));
+                this.view._setBounds(new geometry.Rect(this.visualOffset.x, this.visualOffset.y, this.renderSize.width, this.renderSize.height));
             }
         }
     };
     LayoutInfo.prototype.arrangeCore = function (finalRect) {
         var needsClipBounds = false;
         var arrangeSize = finalRect.size;
-        var margin = this._margin;
+        var margin = this.margin;
         var marginWidth = (margin) ? margin.left + margin.right : 0;
         var marginHeight = (margin) ? margin.top + margin.bottom : 0;
         arrangeSize.width = Math.max(0.0, arrangeSize.width - marginWidth);
@@ -450,10 +248,10 @@ var LayoutInfo = (function () {
             needsClipBounds = true;
             arrangeSize.height = unclippedDS.height;
         }
-        if (this._horizontalAlignment !== common.HorizontalAlignment.stretch) {
+        if (this.horizontalAlignment !== enums.HorizontalAlignment.stretch) {
             arrangeSize.width = unclippedDS.width;
         }
-        if (this._verticalAlignment !== common.VerticalAlignment.stretch) {
+        if (this.verticalAlignment !== enums.VerticalAlignment.stretch) {
             arrangeSize.height = unclippedDS.height;
         }
         var max = new common.MinMax(this);
@@ -467,7 +265,7 @@ var LayoutInfo = (function () {
             needsClipBounds = true;
             arrangeSize.height = effectiveMaxHeight;
         }
-        this._view._arrangeOverride(new geometry.Size(arrangeSize.width, arrangeSize.height));
+        this.view._arrangeOverride(new geometry.Size(arrangeSize.width, arrangeSize.height));
         this.renderSize = arrangeSize;
         var width = Math.min(arrangeSize.width, max.maxWidth);
         var height = Math.min(arrangeSize.height, max.maxHeight);
@@ -483,31 +281,31 @@ var LayoutInfo = (function () {
     };
     LayoutInfo.prototype.computeAlignmentOffset = function (clientSize, renderSize) {
         var point = geometry.Point.zero;
-        var horizontalAlignment = this._horizontalAlignment;
-        if (horizontalAlignment === common.HorizontalAlignment.stretch && renderSize.width > clientSize.width) {
-            horizontalAlignment = common.HorizontalAlignment.left;
+        var horizontalAlignment = this.horizontalAlignment;
+        if (horizontalAlignment === enums.HorizontalAlignment.stretch && renderSize.width > clientSize.width) {
+            horizontalAlignment = enums.HorizontalAlignment.left;
         }
-        var verticalAlignment = this._verticalAlignment;
-        if (verticalAlignment === common.VerticalAlignment.stretch && renderSize.height > clientSize.height) {
-            verticalAlignment = common.VerticalAlignment.top;
+        var verticalAlignment = this.verticalAlignment;
+        if (verticalAlignment === enums.VerticalAlignment.stretch && renderSize.height > clientSize.height) {
+            verticalAlignment = enums.VerticalAlignment.top;
         }
         switch (horizontalAlignment) {
-            case common.HorizontalAlignment.center:
-            case common.HorizontalAlignment.stretch:
+            case enums.HorizontalAlignment.center:
+            case enums.HorizontalAlignment.stretch:
                 point.x = (clientSize.width - renderSize.width) / 2;
                 break;
-            case common.HorizontalAlignment.right:
+            case enums.HorizontalAlignment.right:
                 point.x = clientSize.width - renderSize.width;
                 break;
             default:
                 break;
         }
         switch (verticalAlignment) {
-            case common.VerticalAlignment.center:
-            case common.VerticalAlignment.stretch:
+            case enums.VerticalAlignment.center:
+            case enums.VerticalAlignment.stretch:
                 point.y = (clientSize.height - renderSize.height) / 2;
                 break;
-            case common.VerticalAlignment.bottom:
+            case enums.VerticalAlignment.bottom:
                 point.y = clientSize.height - renderSize.height;
                 break;
             default:
@@ -516,19 +314,18 @@ var LayoutInfo = (function () {
         return point;
     };
     LayoutInfo.prototype.updateLayout = function () {
-        var view = this._view;
-        var frame = view._getBounds();
+        var frame = this.view._getBounds();
         if (frame) {
-            view._setBounds(frame);
+            this.view._setBounds(frame);
         }
         LayoutManager.current.updateLayout();
     };
     LayoutInfo.propagateResumeLayout = function (parent, layout) {
-        var parentIsSuspended = parent == null ? false : parent.isLayoutSuspended;
+        var parentIsSuspended = parent ? parent.isLayoutSuspended : false;
         if (parentIsSuspended) {
             return;
         }
-        var parentTreeLevel = parent == null ? 0 : parent.treeLevel;
+        var parentTreeLevel = parent ? parent.treeLevel : 0;
         layout.treeLevel = parentTreeLevel + 1;
         layout.isLayoutSuspended = false;
         var requireMeasureUpdate = layout.measureDirty && !layout.neverMeasured && !layout.measureRequest;
@@ -562,7 +359,7 @@ var LayoutInfo = (function () {
         layout.view._eachChildView(forEachChild);
     };
     return LayoutInfo;
-})();
+})(common.LayoutInfoBase);
 exports.LayoutInfo = LayoutInfo;
 var Request = (function () {
     function Request() {
@@ -640,6 +437,7 @@ var LayoutQueue = (function () {
         if (parent && this.canRelyOnParentRecalc(parent)) {
             return;
         }
+        var manager = LayoutManager.current;
         if (this.pocketSize > LayoutQueue.PocketReserve) {
             this.addRequest(element);
         }
@@ -657,20 +455,21 @@ var LayoutQueue = (function () {
                 element = p;
             }
         }
+        manager.needsRecalc();
     };
     LayoutQueue.prototype.canRelyOnParentRecalc = function (parent) {
-        throw new Error("Must be overloaded!");
+        throw new Error("Must be overriden!");
         return false;
     };
     LayoutQueue.prototype.getRequest = function (element) {
-        throw new Error("Must be overloaded!");
+        throw new Error("Must be overriden!");
         return null;
     };
     LayoutQueue.prototype.setRequest = function (element, request) {
-        throw new Error("Must be overloaded!");
+        throw new Error("Must be overriden!");
     };
     LayoutQueue.prototype.invalidate = function (element) {
-        throw new Error("Must be overloaded!");
+        throw new Error("Must be overriden!");
     };
     LayoutQueue.prototype.getTopMost = function () {
         var target = null;
@@ -827,29 +626,26 @@ var LayoutManager = (function () {
             }
             element = parentLayoutInfo;
         }
-        this.markTreeDirtyHelper(element);
+        LayoutManager.markTreeDirtyHelper(element);
         this.measureQueue.add(element);
         this.arrangeQueue.add(element);
     };
-    LayoutManager.prototype.markTreeDirtyHelper = function (element) {
+    LayoutManager.markTreeDirtyHelper = function (element) {
         if (element) {
             element.invalidateMeasureInternal();
             element.invalidateArrangeInternal();
         }
-        var that = this;
         var forEachChild = function (subView) {
             var childLayout = subView._layoutInfo;
-            that.markTreeDirtyHelper(childLayout);
+            LayoutManager.markTreeDirtyHelper(childLayout);
             return true;
         };
         element.view._eachChildView(forEachChild);
     };
     LayoutManager.prototype.needsRecalc = function () {
-        var _this = this;
         if (!this.layoutRequestPosted && !this.isUpdating) {
-            timer.setTimeout(function () {
-                _this.updateLayout();
-            }, 20);
+            UIApplication.sharedApplication().keyWindow.setNeedsLayout();
+            trace.write("Layout dispatched", trace.categories.Layout);
             this.layoutRequestPosted = true;
         }
     };
@@ -857,73 +653,24 @@ var LayoutManager = (function () {
         this.forceLayoutElement = element;
     };
     LayoutManager.prototype.updateLayout = function () {
-        var _this = this;
         if (this.isInUpdateLayout || this.measureOnStack > 0 || this.arrangeOnStack > 0) {
             return;
         }
-        var counter = 0;
         var gotException = true;
         var currentElement = null;
         try {
             this.invalidateTreeIfRecovering();
             while (this.hasDirtyness() || this.firePostLayoutEvents) {
-                if (++counter > 153) {
-                    timer.setTimeout(function () {
-                        _this.needsRecalc();
-                    }, 20);
-                    currentElement = null;
-                    gotException = false;
-                    return;
-                }
                 this.isUpdating = true;
                 this.isInUpdateLayout = true;
-                var loopCounter = 0;
-                var loopStartTime;
-                var diff;
                 while (true) {
-                    if (++loopCounter > 153) {
-                        loopCounter = 0;
-                        if (!loopStartTime) {
-                            loopStartTime = new NSDate();
-                        }
-                        else {
-                            diff = loopStartTime.timeIntervalSinceNow * -1000;
-                            if (diff > 2 * 153) {
-                                timer.setTimeout(function () {
-                                    _this.needsRecalc();
-                                }, 20);
-                                currentElement = null;
-                                gotException = false;
-                                return;
-                            }
-                        }
-                    }
                     currentElement = this.measureQueue.getTopMost();
                     if (!currentElement) {
                         break;
                     }
                     currentElement.measure(currentElement.previousAvailableSize);
                 }
-                loopCounter = 0;
-                loopStartTime = undefined;
                 while (this.measureQueue.isEmpty()) {
-                    if (++loopCounter > 153) {
-                        loopCounter = 0;
-                        if (!loopStartTime) {
-                            loopStartTime = new NSDate();
-                        }
-                        else {
-                            diff = loopStartTime.timeIntervalSinceNow * -1000;
-                            if (diff > 2 * 153) {
-                                timer.setTimeout(function () {
-                                    _this.needsRecalc();
-                                }, 20);
-                                currentElement = null;
-                                gotException = false;
-                                return;
-                            }
-                        }
-                    }
                     currentElement = this.arrangeQueue.getTopMost();
                     if (!currentElement) {
                         break;
@@ -944,14 +691,11 @@ var LayoutManager = (function () {
         }
         finally {
             this.isUpdating = false;
-            this.layoutRequestPosted = false;
             this.isInUpdateLayout = false;
+            this.layoutRequestPosted = false;
             if (gotException) {
                 this.gotException = true;
                 this.forceLayoutElement = currentElement;
-                timer.setTimeout(function () {
-                    _this.needsRecalc();
-                }, 20);
             }
         }
     };
@@ -960,6 +704,12 @@ var LayoutManager = (function () {
             return !this.arrangeQueue.isEmpty();
         }
         return true;
+    };
+    LayoutManager.prototype.suspendLayoutDispatching = function () {
+        this.isUpdating = true;
+    };
+    LayoutManager.prototype.resumeLayoutDispatching = function () {
+        this.isUpdating = false;
     };
     LayoutManager.LayoutRecursionLimit = 0x100;
     LayoutManager.current = new LayoutManager();

@@ -30,10 +30,12 @@ var Switch = (function (_super) {
         this._android = new android.widget.Switch(this._context);
         var that = new WeakRef(this);
         this._android.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener({
+            get owner() {
+                return that.get();
+            },
             onCheckedChanged: function (sender, isChecked) {
-                var owner = that.get();
-                if (owner) {
-                    owner._onPropertyChangedFromNative(common.checkedProperty, isChecked);
+                if (this.owner) {
+                    this.owner._onPropertyChangedFromNative(common.checkedProperty, isChecked);
                 }
             }
         }));

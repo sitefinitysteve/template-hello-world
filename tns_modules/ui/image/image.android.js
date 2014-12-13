@@ -5,6 +5,7 @@ var __extends = this.__extends || function (d, b) {
     d.prototype = new __();
 };
 var imageCommon = require("ui/image/image-common");
+var enums = require("ui/enums");
 require("utils/module-merge").merge(imageCommon, exports);
 function onStretchPropertyChanged(data) {
     var image = data.object;
@@ -12,16 +13,16 @@ function onStretchPropertyChanged(data) {
         return;
     }
     switch (data.newValue) {
-        case imageCommon.stretch.aspectFit:
+        case enums.Stretch.aspectFit:
             image.android.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
             break;
-        case imageCommon.stretch.aspectFill:
+        case enums.Stretch.aspectFill:
             image.android.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
             break;
-        case imageCommon.stretch.fill:
+        case enums.Stretch.fill:
             image.android.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
             break;
-        case imageCommon.stretch.none:
+        case enums.Stretch.none:
         default:
             image.android.setScaleType(android.widget.ImageView.ScaleType.MATRIX);
             break;

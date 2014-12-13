@@ -9,12 +9,15 @@ var trace = require("trace");
 var constants = require("utils/android_constants");
 var style = require("ui/styling/style");
 var stylersCommon = require("ui/styling/stylers-common");
+var enums = require("ui/enums");
 require("utils/module-merge").merge(stylersCommon, exports);
 var DefaultStyler = (function (_super) {
     __extends(DefaultStyler, _super);
     function DefaultStyler() {
         _super.call(this);
         this.setHandler(style.backgroundColorProperty, new stylersCommon.StylePropertyChangedHandler(DefaultStyler.setBackgroundProperty, DefaultStyler.resetBackgroundProperty, DefaultStyler.getNativeBackgroundValue));
+        this.setHandler(style.visibilityProperty, new stylersCommon.StylePropertyChangedHandler(DefaultStyler.setVisibilityProperty, DefaultStyler.resetVisibilityProperty));
+        this.setHandler(style.opacityProperty, new stylersCommon.StylePropertyChangedHandler(DefaultStyler.setOpacityProperty, DefaultStyler.resetOpacityProperty));
     }
     DefaultStyler.setBackgroundProperty = function (view, newValue) {
         view.android.setBackgroundColor(newValue);
@@ -32,6 +35,19 @@ var DefaultStyler = (function (_super) {
         }
         return drawable;
     };
+    DefaultStyler.setVisibilityProperty = function (view, newValue) {
+        var androidValue = (newValue === enums.Visibility.visible) ? android.view.View.VISIBLE : android.view.View.GONE;
+        view.android.setVisibility(androidValue);
+    };
+    DefaultStyler.resetVisibilityProperty = function (view, nativeValue) {
+        view.android.setVisibility(android.view.View.VISIBLE);
+    };
+    DefaultStyler.setOpacityProperty = function (view, newValue) {
+        view.android.setAlpha(float(newValue));
+    };
+    DefaultStyler.resetOpacityProperty = function (view, nativeValue) {
+        view.android.setAlpha(float(1.0));
+    };
     return DefaultStyler;
 })(stylersCommon.Styler);
 exports.DefaultStyler = DefaultStyler;
@@ -41,6 +57,7 @@ var TextViewStyler = (function (_super) {
         _super.call(this);
         this.setHandler(style.colorProperty, new stylersCommon.StylePropertyChangedHandler(TextViewStyler.setColorProperty, TextViewStyler.resetColorProperty, TextViewStyler.getNativeColorValue));
         this.setHandler(style.fontSizeProperty, new stylersCommon.StylePropertyChangedHandler(TextViewStyler.setFontSizeProperty, TextViewStyler.resetFontSizeProperty, TextViewStyler.getNativeFontSizeValue));
+        this.setHandler(style.textAlignmentProperty, new stylersCommon.StylePropertyChangedHandler(TextViewStyler.setTextAlignmentProperty, TextViewStyler.resetTextAlignmentProperty, TextViewStyler.getNativeTextAlignmentValue));
     }
     TextViewStyler.setColorProperty = function (view, newValue) {
         view.android.setTextColor(newValue);
@@ -60,6 +77,28 @@ var TextViewStyler = (function (_super) {
     TextViewStyler.getNativeFontSizeValue = function (view) {
         return view.android.getTextSize();
     };
+    TextViewStyler.setTextAlignmentProperty = function (view, newValue) {
+        var verticalGravity = view.android.getGravity() & android.view.Gravity.VERTICAL_GRAVITY_MASK;
+        switch (newValue) {
+            case enums.TextAlignment.left:
+                view.android.setGravity(android.view.Gravity.LEFT | verticalGravity);
+                break;
+            case enums.TextAlignment.center:
+                view.android.setGravity(android.view.Gravity.CENTER_HORIZONTAL | verticalGravity);
+                break;
+            case enums.TextAlignment.right:
+                view.android.setGravity(android.view.Gravity.RIGHT | verticalGravity);
+                break;
+            default:
+                break;
+        }
+    };
+    TextViewStyler.resetTextAlignmentProperty = function (view, nativeValue) {
+        view.android.setGravity(nativeValue);
+    };
+    TextViewStyler.getNativeTextAlignmentValue = function (view) {
+        return view.android.getGravity();
+    };
     return TextViewStyler;
 })(DefaultStyler);
 exports.TextViewStyler = TextViewStyler;
@@ -78,10 +117,35 @@ var ButtonStyler = (function (_super) {
     return ButtonStyler;
 })(TextViewStyler);
 exports.ButtonStyler = ButtonStyler;
+var ActivityIndicatorStyler = (function (_super) {
+    __extends(ActivityIndicatorStyler, _super);
+    function ActivityIndicatorStyler() {
+        _super.call(this);
+        this.setHandler(style.visibilityProperty, new stylersCommon.StylePropertyChangedHandler(ActivityIndicatorStyler.setActivityIndicatorVisibilityProperty, ActivityIndicatorStyler.resetActivityIndicatorVisibilityProperty));
+    }
+    ActivityIndicatorStyler.setActivityIndicatorVisibilityProperty = function (view, newValue) {
+        ActivityIndicatorStyler.setIndicatorVisibility(view.busy, newValue, view.android);
+    };
+    ActivityIndicatorStyler.resetActivityIndicatorVisibilityProperty = function (view, nativeValue) {
+        ActivityIndicatorStyler.setIndicatorVisibility(view.busy, enums.Visibility.visible, view.android);
+    };
+    ActivityIndicatorStyler.setIndicatorVisibility = function (isBusy, visibility, nativView) {
+        if (visibility === enums.Visibility.collapsed) {
+            nativView.setVisibility(android.view.View.GONE);
+        }
+        else {
+            nativView.setVisibility(isBusy ? android.view.View.VISIBLE : android.view.View.INVISIBLE);
+        }
+    };
+    return ActivityIndicatorStyler;
+})(DefaultStyler);
+exports.ActivityIndicatorStyler = ActivityIndicatorStyler;
 function _registerDefaultStylers() {
+    stylersCommon.registerStyler("Frame", new stylersCommon.EmptyStyler());
     stylersCommon.registerStyler("Button", new ButtonStyler());
     stylersCommon.registerStyler("Label", new TextViewStyler());
     stylersCommon.registerStyler("TextField", new TextViewStyler());
     stylersCommon.registerStyler("TextView", new TextViewStyler());
+    stylersCommon.registerStyler("ActivityIndicator", new ActivityIndicatorStyler());
 }
 exports._registerDefaultStylers = _registerDefaultStylers;

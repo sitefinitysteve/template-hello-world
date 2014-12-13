@@ -1,6 +1,9 @@
 var common = require("utils/utils-common");
 var colorModule = require("color");
 require("utils/module-merge").merge(common, exports);
+function isOrientationLandscape(orientation) {
+    return orientation === UIDeviceOrientation.UIDeviceOrientationLandscapeLeft || orientation === UIDeviceOrientation.UIDeviceOrientationLandscapeRight;
+}
 var ios;
 (function (ios) {
     var collections;
@@ -46,6 +49,14 @@ var ios;
         return 0;
     }
     ios.getActualHeight = getActualHeight;
+    function isLandscape() {
+        var device = UIDevice.currentDevice();
+        var statusBarOrientation = UIApplication.sharedApplication().statusBarOrientation;
+        var isStatusBarOrientationLandscape = isOrientationLandscape(statusBarOrientation);
+        return isOrientationLandscape(device.orientation) || isStatusBarOrientationLandscape;
+    }
+    ios.isLandscape = isLandscape;
+    ios.MajorVersion = NSString.stringWithString(UIDevice.currentDevice().systemVersion).intValue;
 })(ios = exports.ios || (exports.ios = {}));
 function GC() {
     __collect();

@@ -20,14 +20,6 @@ var ClickHandlerClass = NSObject.extend({
 }, {
     exposedMethods: { "click": "v@" }
 });
-function onTextPropertyChanged(data) {
-    var button = data.object;
-    if (!button.ios) {
-        return;
-    }
-    button.ios.setTitleForState(data.newValue, UIControlState.UIControlStateNormal);
-}
-common.textProperty.metadata.onSetNativeValue = onTextPropertyChanged;
 require("utils/module-merge").merge(common, exports);
 var Button = (function (_super) {
     __extends(Button, _super);

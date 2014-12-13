@@ -49,10 +49,10 @@ var PagerAdapterClass = android.support.v4.view.PagerAdapter.extend({
         if (item.view.android !== _object) {
             throw new Error("Expected " + item.view.android + " to equal " + _object);
         }
+        container.removeView(item.view.android);
         if (item.view.parent === this.owner) {
             this.owner._removeView(item.view);
         }
-        container.removeView(item.view.android);
     },
     isViewFromObject: function (view, _object) {
         return view === _object;
@@ -123,16 +123,24 @@ var TabView = (function (_super) {
         this._android.setOnPageChangeListener(this._pageChangeListener);
     };
     TabView.prototype._onVisibilityChanged = function (changedView, visibility) {
-        trace.write("TabView._onVisibilityChanged(" + changedView + ", " + visibility + ")", trace.categories.Debug);
-        if (!this.isLoaded) {
-            return;
-        }
-        if (visibility === android.view.View.VISIBLE) {
+        trace.write("TabView._onVisibilityChanged:" + this.android + " isShown():" + this.android.isShown(), trace.categories.Debug);
+        if (this.isLoaded && this.android && this.android.isShown()) {
             this._addTabsIfNeeded();
         }
         else {
-            this._removeTabsIfNeeded();
+            if (TabView._isProxyOfOrDescendantOfNativeView(this, changedView)) {
+                this._removeTabsIfNeeded();
+            }
         }
+    };
+    TabView._isProxyOfOrDescendantOfNativeView = function (view, nativeView) {
+        if (view.android === nativeView) {
+            return true;
+        }
+        if (!view.parent) {
+            return false;
+        }
+        return TabView._isProxyOfOrDescendantOfNativeView(view.parent, nativeView);
     };
     TabView.prototype._onAttached = function (context) {
         trace.write("TabView._onAttached(" + context + ");", trace.categories.Debug);
@@ -145,7 +153,9 @@ var TabView = (function (_super) {
     TabView.prototype.onLoaded = function () {
         trace.write("TabView.onLoaded();", trace.categories.Debug);
         _super.prototype.onLoaded.call(this);
-        this._addTabsIfNeeded();
+        if (this.android && this.android.isShown()) {
+            this._addTabsIfNeeded();
+        }
     };
     TabView.prototype.onUnloaded = function () {
         trace.write("TabView.onUnloaded();", trace.categories.Debug);

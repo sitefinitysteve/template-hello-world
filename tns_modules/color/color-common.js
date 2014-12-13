@@ -104,6 +104,15 @@ var Color = (function () {
     Color.prototype._argbFromString = function (hex) {
         return undefined;
     };
+    Color.prototype.equals = function (value) {
+        return this.argb === value.argb;
+    };
+    Color.equals = function (value1, value2) {
+        if (!value1 || !value2) {
+            return false;
+        }
+        return value1.equals(value2);
+    };
     Color.prototype._buildHex = function () {
         return AMP + this._componentToHex(this._a) + this._componentToHex(this._r) + this._componentToHex(this._g) + this._componentToHex(this._b);
     };

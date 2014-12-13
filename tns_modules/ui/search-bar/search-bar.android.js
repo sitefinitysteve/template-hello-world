@@ -26,36 +26,36 @@ var SearchBar = (function (_super) {
         this._android = new android.widget.SearchView(this._context);
         var that = new WeakRef(this);
         this._android.setOnQueryTextListener(new android.widget.SearchView.OnQueryTextListener({
+            get owner() {
+                return that.get();
+            },
             onQueryTextChange: function (newText) {
-                var owner = this.getOwner();
-                if (owner) {
-                    owner._onPropertyChangedFromNative(common.textProperty, newText);
+                if (this.owner) {
+                    this.owner._onPropertyChangedFromNative(common.textProperty, newText);
                     if (newText === EMPTY && this[SEARCHTEXT] !== newText) {
-                        owner._emit(common.knownEvents.clear);
+                        this.owner._emit(common.knownEvents.clear);
                     }
                     this[SEARCHTEXT] = newText;
                 }
                 return true;
             },
             onQueryTextSubmit: function (query) {
-                var owner = this.getOwner();
-                if (owner) {
+                if (this.owner) {
                     if (query !== EMPTY && this[QUERY] !== query) {
-                        owner._emit(common.knownEvents.submit);
+                        this.owner._emit(common.knownEvents.submit);
                     }
                     this[QUERY] = query;
                 }
                 return true;
-            },
-            getOwner: function () {
-                return that.get();
             }
         }));
         this._android.setOnCloseListener(new android.widget.SearchView.OnCloseListener({
+            get owner() {
+                return that.get();
+            },
             onClose: function () {
-                var owner = that.get();
-                if (owner) {
-                    owner._emit(common.knownEvents.clear);
+                if (this.owner) {
+                    this.owner._emit(common.knownEvents.clear);
                 }
                 return true;
             }

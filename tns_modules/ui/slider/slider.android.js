@@ -10,7 +10,7 @@ function onValuePropertyChanged(data) {
     if (!slider.android) {
         return;
     }
-    slider.android.setProgress(data.newValue - slider.minValue);
+    slider._setNativeValuesSilently(data.newValue - slider.minValue, slider.maxValue - slider.minValue);
 }
 function onMinValuePropertyChanged(data) {
     var slider = data.object;

@@ -10,6 +10,7 @@ var types = require("utils/types");
 var trace = require("trace");
 var builder = require("ui/builder");
 var fs = require("file-system");
+var fileSystemAccess = require("file-system/file-system-access");
 var frameStack = [];
 function buildEntryFromArgs(arg) {
     var entry;
@@ -35,34 +36,39 @@ function buildEntryFromArgs(arg) {
 }
 function resolvePageFromEntry(entry) {
     var page;
-    if (entry.page) {
-        page = entry.page;
+    if (entry.page || entry.create) {
+        page = entry.page || entry.create();
     }
     else if (entry.moduleName) {
-        var moduleExports = require(entry.moduleName);
-        page = pageFromBuilder(entry.moduleName, moduleExports) || moduleExports.Page;
-    }
-    else if (entry.create) {
-        page = entry.create();
+        var currentAppPath = fs.knownFolders.currentApp().path;
+        var moduleNamePath = fs.path.join(currentAppPath, entry.moduleName);
+        var moduleExports = require(moduleNamePath);
+        if (entry.resolvedPage) {
+            page = entry.resolvedPage;
+        }
+        else if (moduleExports.createPage) {
+            page = moduleExports.createPage();
+        }
+        else {
+            page = pageFromBuilder(moduleNamePath, moduleExports);
+        }
     }
     return page;
 }
 function pageFromBuilder(moduleName, moduleExports) {
     var page;
     var element;
-    var currentAppPath = fs.knownFolders.currentApp().path;
-    var rootFileName = fs.path.join(currentAppPath, "app", moduleName) + ".xml";
-    var fileName = fs.path.join(currentAppPath, "tns_modules", moduleName) + ".xml";
-    if (fs.File.exists(rootFileName)) {
-        element = builder.load(rootFileName, moduleExports);
-        if (element instanceof pages.Page) {
-            page = element;
-        }
-    }
-    else if (fs.File.exists(fileName)) {
+    var fileName = moduleName + ".xml";
+    if (fs.File.exists(fileName)) {
         element = builder.load(fileName, moduleExports);
         if (element instanceof pages.Page) {
             page = element;
+            var cssFileName = moduleName + ".css";
+            if (fs.File.exists(cssFileName)) {
+                new fileSystemAccess.FileSystemAccess().readText(cssFileName, function (r) {
+                    page.css = r;
+                });
+            }
         }
     }
     return page;

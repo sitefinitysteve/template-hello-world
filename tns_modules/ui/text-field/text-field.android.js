@@ -60,7 +60,7 @@ var TextField = (function (_super) {
         this._android.addTextChangedListener(textWatcher);
     };
     TextField.prototype._onTextPropertyChanged = function (data) {
-        this.android.setText(data.newValue, android.widget.TextView.BufferType.EDITABLE);
+        this.android.setText(data.newValue + "", android.widget.TextView.BufferType.EDITABLE);
     };
     return TextField;
 })(common.TextField);

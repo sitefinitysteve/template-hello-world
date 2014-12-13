@@ -10,15 +10,14 @@ var layout = require("ui/core/layout");
 var trace = require("trace");
 var utils = require("utils/utils");
 require("utils/module-merge").merge(viewCommon, exports);
-var NATIVE_VIEW = "_nativeView";
-function onIsVisiblePropertyChanged(data) {
+function onIsEnabledPropertyChanged(data) {
     var view = data.object;
-    if (!view[NATIVE_VIEW]) {
+    if (!view._nativeView) {
         return;
     }
-    view[NATIVE_VIEW].hidden = !data.newValue;
+    view._nativeView.userInteractionEnabled = data.newValue;
 }
-viewCommon.isVisibleProperty.metadata.onSetNativeValue = onIsVisiblePropertyChanged;
+viewCommon.isEnabledProperty.metadata.onSetNativeValue = onIsEnabledPropertyChanged;
 var View = (function (_super) {
     __extends(View, _super);
     function View() {
@@ -45,8 +44,11 @@ var View = (function (_super) {
     View.prototype._setBounds = function (rect) {
         _super.prototype._setBounds.call(this, rect);
         var frame = CGRectMake(rect.x, rect.y, rect.width, rect.height);
-        trace.write("Native set Frame to View (" + this + "): " + rect, trace.categories.Layout);
-        this._nativeView.frame = frame;
+        var nativeView = this._nativeView;
+        if (!CGRectEqualToRect(nativeView.frame, frame)) {
+            trace.write(this + ", Native setFrame: " + NSStringFromCGRect(frame), trace.categories.Layout);
+            nativeView.frame = frame;
+        }
     };
     View.prototype.onLoaded = function () {
         _super.prototype.onLoaded.call(this);
@@ -60,6 +62,11 @@ var View = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    View.prototype._onSubviewDesiredSizeChanged = function () {
+        this._invalidateMeasure();
+    };
+    View.prototype._prepareNativeView = function (view) {
+    };
     return View;
 })(viewCommon.View);
 exports.View = View;

@@ -1,4 +1,5 @@
 require("globals");
+exports.onUncaughtError = undefined;
 exports.onLaunch = undefined;
 exports.onSuspend = undefined;
 exports.onResume = undefined;

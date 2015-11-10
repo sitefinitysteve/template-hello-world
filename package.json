@@ -23,6 +23,6 @@
 	},
 	"homepage": "https://github.com/NativeScript/template-hello-world",
 	"android": {
-		"v8flags": "--expose_gc"
+		"v8Flags": "--expose_gc"
 	}
 }
